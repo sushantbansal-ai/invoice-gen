@@ -75,6 +75,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
               />
             ) : null}
             <span style={{
+              display: 'inline-block',
               backgroundColor: status.bg,
               color: status.text,
               padding: '3px 12px',

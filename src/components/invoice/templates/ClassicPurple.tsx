@@ -49,11 +49,11 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
               style={{
                 backgroundColor: status.bg,
                 color: status.text,
-                padding: '2px 10px',
+                padding: '8px',
                 borderRadius: '12px',
                 fontSize: '12px',
                 fontWeight: '600',
-                alignSelf: 'center',
+                textAlign: 'center'
               }}
             >
               {status.label}
