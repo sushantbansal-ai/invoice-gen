@@ -15,6 +15,15 @@ async function captureElement(elementId: string): Promise<HTMLCanvasElement> {
     backgroundColor: '#ffffff',
     logging: false,
     onclone: (clonedDoc) => {
+      // Reset transform on the invoice root so it's captured at full A4 size,
+      // not the scaled-down preview size shown in the UI
+      const rootEl = clonedDoc.getElementById(elementId)
+      if (rootEl) {
+        rootEl.style.transform = 'none'
+        rootEl.style.transformOrigin = 'top left'
+        rootEl.style.width = '794px'
+      }
+
       const allEls = clonedDoc.querySelectorAll<HTMLElement>('*')
       allEls.forEach((el) => {
         el.style.boxShadow = 'none'

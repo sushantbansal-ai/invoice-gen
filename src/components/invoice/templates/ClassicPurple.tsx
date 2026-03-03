@@ -47,6 +47,7 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
             </span>
             <span
               style={{
+                display: 'inline-block',
                 backgroundColor: status.bg,
                 color: status.text,
                 padding: '2px 10px',
