@@ -78,7 +78,18 @@ export function InvoicePreview() {
     try {
       const filename = `invoice-${invoice.invoiceNo || 'draft'}.pdf`
       await generatePDF('invoice-preview-root', filename)
-      track('pdf_downloaded', { template: invoice.template, currency: invoice.currency })
+      track('pdf_downloaded', {
+        template: invoice.template,
+        currency: invoice.currency,
+        from_name: invoice.billedBy.name,
+        from_email: invoice.billedBy.email ?? '',
+        from_city: invoice.billedBy.city,
+        from_country: invoice.billedBy.country,
+        to_name: invoice.billedTo.name,
+        to_email: invoice.billedTo.email ?? '',
+        to_city: invoice.billedTo.city,
+        to_country: invoice.billedTo.country,
+      })
     } catch (err) {
       console.error('PDF generation failed:', err)
       alert('Failed to generate PDF. Please try again.')
@@ -103,7 +114,18 @@ export function InvoicePreview() {
       const blob = await generatePDFBlob('invoice-preview-root')
       const result = await uploadInvoiceToDrive(blob, filename, token)
       setDriveSuccess({ id: result.id, link: result.webViewLink })
-      track('pdf_uploaded_to_drive', { template: invoice.template, currency: invoice.currency })
+      track('pdf_uploaded_to_drive', {
+        template: invoice.template,
+        currency: invoice.currency,
+        from_name: invoice.billedBy.name,
+        from_email: invoice.billedBy.email ?? '',
+        from_city: invoice.billedBy.city,
+        from_country: invoice.billedBy.country,
+        to_name: invoice.billedTo.name,
+        to_email: invoice.billedTo.email ?? '',
+        to_city: invoice.billedTo.city,
+        to_country: invoice.billedTo.country,
+      })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Upload failed'
       setDriveError(message)
