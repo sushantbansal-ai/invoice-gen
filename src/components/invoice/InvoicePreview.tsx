@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { track } from '@vercel/analytics'
 import { useInvoiceStore } from '@/store/invoiceStore'
 import { calculateTotals } from '@/lib/calculations'
 import { generatePDF, generatePDFBlob } from '@/lib/pdf'
@@ -77,6 +78,7 @@ export function InvoicePreview() {
     try {
       const filename = `invoice-${invoice.invoiceNo || 'draft'}.pdf`
       await generatePDF('invoice-preview-root', filename)
+      track('pdf_downloaded', { template: invoice.template, currency: invoice.currency })
     } catch (err) {
       console.error('PDF generation failed:', err)
       alert('Failed to generate PDF. Please try again.')
@@ -101,6 +103,7 @@ export function InvoicePreview() {
       const blob = await generatePDFBlob('invoice-preview-root')
       const result = await uploadInvoiceToDrive(blob, filename, token)
       setDriveSuccess({ id: result.id, link: result.webViewLink })
+      track('pdf_uploaded_to_drive', { template: invoice.template, currency: invoice.currency })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Upload failed'
       setDriveError(message)
