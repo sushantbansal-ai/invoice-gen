@@ -22,6 +22,16 @@ async function captureElement(elementId: string): Promise<HTMLCanvasElement> {
         rootEl.style.transform = 'none'
         rootEl.style.transformOrigin = 'top left'
         rootEl.style.width = '794px'
+
+        // The UI wraps the invoice in a container with overflow:hidden sized to
+        // the scaled dimensions. After removing the transform the full-size element
+        // would be clipped by that container, so we also reset it here.
+        const parentEl = rootEl.parentElement
+        if (parentEl) {
+          parentEl.style.overflow = 'visible'
+          parentEl.style.width = '794px'
+          parentEl.style.height = 'auto'
+        }
       }
 
       const allEls = clonedDoc.querySelectorAll<HTMLElement>('*')
@@ -34,66 +44,40 @@ async function captureElement(elementId: string): Promise<HTMLCanvasElement> {
   })
 }
 
-export async function generatePDF(elementId: string, filename: string): Promise<void> {
-  const canvas = await captureElement(elementId)
-
+function buildPDF(canvas: HTMLCanvasElement): jsPDF {
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   })
 
-  const imgData = canvas.toDataURL('image/png')
-  const pageWidth = pdf.internal.pageSize.getWidth()
-  const pageHeight = pdf.internal.pageSize.getHeight()
-  const imgHeightMM = (canvas.height / canvas.width) * pageWidth
+  // JPEG at 0.92 quality: visually indistinguishable from PNG for invoice content
+  // but ~70% smaller file size compared to PNG
+  const imgData = canvas.toDataURL('image/jpeg', 0.92)
+  const imgHeightMM = (canvas.height / canvas.width) * A4_WIDTH_MM
 
   let heightLeft = imgHeightMM
   let position = 0
 
-  pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeightMM)
-  heightLeft -= pageHeight
+  pdf.addImage(imgData, 'JPEG', 0, position, A4_WIDTH_MM, imgHeightMM)
+  heightLeft -= A4_HEIGHT_MM
 
   while (heightLeft > 0) {
     position = heightLeft - imgHeightMM
     pdf.addPage()
-    pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeightMM)
-    heightLeft -= pageHeight
+    pdf.addImage(imgData, 'JPEG', 0, position, A4_WIDTH_MM, imgHeightMM)
+    heightLeft -= A4_HEIGHT_MM
   }
 
-  pdf.save(filename)
+  return pdf
+}
+
+export async function generatePDF(elementId: string, filename: string): Promise<void> {
+  const canvas = await captureElement(elementId)
+  buildPDF(canvas).save(filename)
 }
 
 export async function generatePDFBlob(elementId: string): Promise<Blob> {
   const canvas = await captureElement(elementId)
-
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  })
-
-  const imgData = canvas.toDataURL('image/png')
-  const pageWidth = pdf.internal.pageSize.getWidth()
-  const pageHeight = pdf.internal.pageSize.getHeight()
-  const imgHeightMM = (canvas.height / canvas.width) * pageWidth
-
-  let heightLeft = imgHeightMM
-  let position = 0
-
-  pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeightMM)
-  heightLeft -= pageHeight
-
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeightMM
-    pdf.addPage()
-    pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeightMM)
-    heightLeft -= pageHeight
-  }
-
-  return pdf.output('blob')
+  return buildPDF(canvas).output('blob')
 }
-
-// Suppress unused warnings - these are used by the constants
-void A4_WIDTH_MM
-void A4_HEIGHT_MM
