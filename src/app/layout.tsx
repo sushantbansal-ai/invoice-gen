@@ -89,6 +89,12 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
+      '@type': 'Organization',
+      name: 'BuildingDots',
+      url: 'https://buildingdots.com',
+      logo: 'https://invoice.buildingdots.com/buildingdots.png',
+    },
+    {
       '@type': 'SoftwareApplication',
       name: 'Free Invoice Generator',
       applicationCategory: 'BusinessApplication',
@@ -96,6 +102,7 @@ const jsonLd = {
       url: 'https://invoice.buildingdots.com',
       description:
         'Create professional PDF invoices online for free. No account required. Multiple templates, GST support, currency conversion, Google Drive integration.',
+      author: { '@type': 'Organization', name: 'BuildingDots', url: 'https://buildingdots.com' },
       offers: {
         '@type': 'Offer',
         price: '0',
@@ -119,7 +126,7 @@ const jsonLd = {
           name: 'Is this invoice generator really free?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes, completely free with no signup required. Create unlimited invoices and download them as PDFs at no cost.',
+            text: 'Yes, completely free. No hidden fees, no premium plans, no credit card required. Create unlimited invoices and download them as PDFs at no cost.',
           },
         },
         {
@@ -135,15 +142,15 @@ const jsonLd = {
           name: 'Can I upload my invoice to Google Drive?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes! You can save your invoice PDF directly to Google Drive with one click. Just authorize Google Drive access when prompted.',
+            text: 'Yes! Click "Save to Drive" to upload your invoice PDF directly to Google Drive. Just authorize Google Drive access when prompted — the file is uploaded to your Drive, not shared with us.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Does it support GST invoices?',
+          name: 'Does it support GST invoices for India?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes, you can add your GSTIN number, apply tax rates, and create GST-compliant invoices for Indian businesses.',
+            text: 'Yes, you can add your GSTIN number, apply tax rates, and create GST-compliant invoices. Perfect for Indian freelancers and businesses.',
           },
         },
         {
@@ -151,7 +158,15 @@ const jsonLd = {
           name: 'Can I add my company logo?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes, upload your company logo (up to 2MB) and it will appear on your invoice. The logo is stored locally in your browser.',
+            text: 'Yes, upload your company logo (up to 2MB) and it will appear on your invoice. The logo is stored locally in your browser and included in the PDF.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What currencies are supported?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'We support USD, EUR, GBP, INR, CAD, AUD, JPY, SGD, AED, and CHF. You can also add currency conversion details for international invoices.',
           },
         },
       ],
