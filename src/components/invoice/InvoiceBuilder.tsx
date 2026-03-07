@@ -9,7 +9,7 @@ import { invoiceSchema, type InvoiceFormValues } from '@/types/invoice'
 import type { BilledParty, BankDetails } from '@/types/invoice'
 import { useInvoiceStore } from '@/store/invoiceStore'
 import { useUserProfileStore } from '@/store/userProfileStore'
-import { calculateLineItemAmount } from '@/lib/calculations'
+import { calculateLineItemAmount, calculateTotals } from '@/lib/calculations'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
@@ -505,13 +505,17 @@ export function InvoiceBuilder() {
             size="sm"
             onClick={() => {
               const current = form.getValues('payments') || []
+              const items = form.getValues('items')
+              const taxRate = Number(form.getValues('taxRate')) || 0
+              const discountRate = Number(form.getValues('discountRate')) || 0
+              const { total } = calculateTotals(items, taxRate, discountRate)
               setValue('payments', [
                 ...current,
                 {
                   id: uuidv4(),
                   date: new Date().toISOString().split('T')[0],
                   mode: 'Bank Transfer',
-                  amountReceived: 0,
+                  amountReceived: total,
                   paymentAccount: '',
                   notes: '',
                 },

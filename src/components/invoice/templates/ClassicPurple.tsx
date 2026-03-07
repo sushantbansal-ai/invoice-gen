@@ -22,7 +22,9 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
   const hasBankDetails =
-    invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber
+    invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
+    invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
+    invoice.bankDetails?.bank || invoice.bankDetails?.routingNumber || invoice.bankDetails?.branch
   const hasConversion = invoice.conversionDetails?.conversionRate
   const hasPayments = invoice.payments && invoice.payments.length > 0
 

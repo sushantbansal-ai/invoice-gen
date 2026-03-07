@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export type InvoiceStatus = 'paid' | 'unpaid' | 'pending' | 'overdue'
-export type TemplateId = 'classic-purple' | 'modern-minimal' | 'professional-dark' | 'creative-bold'
+export type TemplateId = 'classic-purple' | 'modern-minimal' | 'professional-dark' | 'creative-bold' | 'corporate-blue'
 export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'INR' | 'CAD' | 'AUD' | 'JPY' | 'SGD' | 'AED' | 'CHF'
 
 export interface BilledParty {
@@ -145,7 +145,7 @@ export const invoiceSchema = z.object({
   payments: z.array(paymentSchema).optional(),
   notes: z.string().optional(),
   terms: z.string().optional(),
-  template: z.enum(['classic-purple', 'modern-minimal', 'professional-dark', 'creative-bold']),
+  template: z.enum(['classic-purple', 'modern-minimal', 'professional-dark', 'creative-bold', 'corporate-blue']),
 })
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>
@@ -200,6 +200,18 @@ export const TEMPLATE_CONFIGS = {
     badgeColor: '#10B981',
     sectionBg: '#FDF4FF',
     swatchColors: ['#EC4899', '#8B5CF6', '#FDF4FF'],
+  },
+  'corporate-blue': {
+    label: 'Corporate Blue',
+    description: 'Clean blue GST invoice style',
+    primaryColor: '#1877C8',
+    accentColor: '#0D5FA0',
+    bgColor: '#FFFFFF',
+    headerBg: '#1877C8',
+    headerText: '#FFFFFF',
+    badgeColor: '#22C55E',
+    sectionBg: '#EBF4FF',
+    swatchColors: ['#1877C8', '#0D5FA0', '#EBF4FF'],
   },
 } as const
 

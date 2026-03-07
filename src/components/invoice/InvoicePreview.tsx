@@ -9,6 +9,7 @@ import { ClassicPurple } from './templates/ClassicPurple'
 import { ModernMinimal } from './templates/ModernMinimal'
 import { ProfessionalDark } from './templates/ProfessionalDark'
 import { CreativeBold } from './templates/CreativeBold'
+import { CorporateBlue } from './templates/CorporateBlue'
 import type { Invoice } from '@/types/invoice'
 import type { InvoiceTotals } from '@/lib/calculations'
 import {
@@ -29,6 +30,7 @@ const TEMPLATE_MAP: Record<string, React.ComponentType<TemplateComponentProps>> 
   'modern-minimal': ModernMinimal,
   'professional-dark': ProfessionalDark,
   'creative-bold': CreativeBold,
+  'corporate-blue': CorporateBlue,
 }
 
 const INVOICE_WIDTH_PX = 794 // A4 at 96dpi
