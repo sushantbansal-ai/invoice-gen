@@ -151,7 +151,13 @@ export function InvoiceBuilder() {
             rate: Number(item?.rate) || 0,
             amount: calculateLineItemAmount(Number(item?.quantity) || 0, Number(item?.rate) || 0),
           }))
-          updateInvoice({ ...(values as InvoiceFormValues), items })
+          // Preserve the template from the store — TemplateSelector updates the store
+          // directly (not via this form), so values.template is always stale.
+          updateInvoice({
+            ...(values as InvoiceFormValues),
+            items,
+            template: useInvoiceStore.getState().invoice.template,
+          })
         }
       }, 150)
     })
