@@ -1,6 +1,6 @@
 'use client'
 
-import { useFieldArray, type Control, type UseFormRegister, type FieldErrors, type UseFormSetValue } from 'react-hook-form'
+import { useFieldArray, useWatch, type Control, type UseFormRegister, type FieldErrors, type UseFormSetValue } from 'react-hook-form'
 import { calculateLineItemAmount, formatNumber } from '@/lib/calculations'
 import { CURRENCY_SYMBOLS } from '@/types/invoice'
 import type { InvoiceFormValues } from '@/types/invoice'
@@ -25,13 +25,17 @@ export function LineItemsTable({
     name: 'items',
   })
 
+  // useWatch gives live updated values (field.amount from useFieldArray is stale after setValue)
+  const watchedItems = useWatch({ control, name: 'items' })
+
   const currencySymbol = CURRENCY_SYMBOLS[currency as keyof typeof CURRENCY_SYMBOLS] || '$'
 
-  function handleQtyRateChange(index: number, field: 'quantity' | 'rate', value: string) {
+  function handleQtyRateChange(index: number, fieldName: 'quantity' | 'rate', value: string) {
     const num = parseFloat(value) || 0
-    setValue(`items.${index}.${field}`, num)
-    const qty = field === 'quantity' ? num : (parseFloat((document.getElementById(`items.${index}.quantity`) as HTMLInputElement)?.value) || 0)
-    const rate = field === 'rate' ? num : (parseFloat((document.getElementById(`items.${index}.rate`) as HTMLInputElement)?.value) || 0)
+    setValue(`items.${index}.${fieldName}`, num)
+    // Read sibling value from watchedItems (live form state) — avoids stale DOM reads on mobile
+    const qty = fieldName === 'quantity' ? num : (Number(watchedItems?.[index]?.quantity) || 0)
+    const rate = fieldName === 'rate' ? num : (Number(watchedItems?.[index]?.rate) || 0)
     setValue(`items.${index}.amount`, calculateLineItemAmount(qty, rate))
   }
 
@@ -95,7 +99,7 @@ export function LineItemsTable({
                   <input {...register(`items.${index}.amount`)} type="hidden" />
                   <span>
                     {currencySymbol}{formatNumber(
-                      parseFloat(String(field.amount || 0)),
+                      parseFloat(String(watchedItems?.[index]?.amount ?? field.amount ?? 0)),
                     )}
                   </span>
                 </td>
@@ -167,7 +171,7 @@ export function LineItemsTable({
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Amount</label>
                 <div className="text-sm font-semibold text-gray-700 py-1.5 px-2 bg-gray-50 rounded">
-                  {currencySymbol}{formatNumber(parseFloat(String(field.amount || 0)))}
+                  {currencySymbol}{formatNumber(parseFloat(String(watchedItems?.[index]?.amount ?? field.amount ?? 0)))}
                 </div>
               </div>
             </div>
