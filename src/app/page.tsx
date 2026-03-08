@@ -10,7 +10,7 @@ export default function Home() {
           {/* Left: BuildingDots branding */}
           <div className="flex items-center gap-3">
             <a
-              href="https://buildingsdots.com"
+              href="https://buildingdots.com"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center hover:opacity-85 transition-opacity"
@@ -182,6 +182,19 @@ export default function Home() {
         </p>
         <p className="text-xs text-gray-400 mt-2">
           © {new Date().getFullYear()} Free Invoice Generator. All rights reserved.
+        </p>
+        <p className="text-xs text-gray-400 mt-3">
+          Made with{' '}
+          <span className="text-red-400">❤️</span>
+          {' '}by{' '}
+          <a
+            href="https://buildingdots.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-500 hover:text-[#7C3AED] font-medium transition-colors"
+          >
+            BuildingDots
+          </a>
         </p>
       </footer>
     </main>
