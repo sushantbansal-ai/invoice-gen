@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { track } from '@vercel/analytics'
 import { useInvoiceStore } from '@/store/invoiceStore'
 import { calculateTotals } from '@/lib/calculations'
@@ -48,7 +48,10 @@ export function InvoicePreview() {
   const [driveError, setDriveError] = useState<string | null>(null)
   const [driveInitialized, setDriveInitialized] = useState(false)
 
-  const totals = calculateTotals(invoice.items, invoice.taxRate, invoice.discountRate)
+  const totals = useMemo(
+    () => calculateTotals(invoice.items, invoice.taxRate, invoice.discountRate),
+    [invoice.items, invoice.taxRate, invoice.discountRate]
+  )
   const TemplateComponent = TEMPLATE_MAP[invoice.template] || ClassicPurple
 
   // Measure container and update scale
