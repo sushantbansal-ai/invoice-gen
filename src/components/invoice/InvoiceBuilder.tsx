@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState, useRef, startTransition, useMemo } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { v4 as uuidv4 } from 'uuid'
 import { Country, State } from 'country-state-city'
@@ -153,10 +153,13 @@ export function InvoiceBuilder() {
           }))
           // Preserve the template from the store — TemplateSelector updates the store
           // directly (not via this form), so values.template is always stale.
-          updateInvoice({
-            ...(values as InvoiceFormValues),
-            items,
-            template: useInvoiceStore.getState().invoice.template,
+          // startTransition defers the preview re-render so it doesn't block user input (INP).
+          startTransition(() => {
+            updateInvoice({
+              ...(values as InvoiceFormValues),
+              items,
+              template: useInvoiceStore.getState().invoice.template,
+            })
           })
         }
       }, 150)
@@ -210,10 +213,15 @@ export function InvoiceBuilder() {
     profileStore.saveProfile({ logo: undefined })
   }
 
-  const watchedPayments = watch('payments') || []
-  const currency = watch('currency')
-  const billedByCountry = watch('billedBy.country')
-  const billedToCountry = watch('billedTo.country')
+  // useWatch subscribes only to specific fields (unlike watch() which re-renders on ANY change)
+  const watchedPayments = useWatch({ control, name: 'payments' }) ?? []
+  const currency = useWatch({ control, name: 'currency' })
+  const billedByCountry = useWatch({ control, name: 'billedBy.country' })
+  const billedToCountry = useWatch({ control, name: 'billedTo.country' })
+
+  // Memoize state options — getStateOptions iterates all countries on every call
+  const billedByStateOptions = useMemo(() => getStateOptions(billedByCountry || ''), [billedByCountry])
+  const billedToStateOptions = useMemo(() => getStateOptions(billedToCountry || ''), [billedToCountry])
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -320,7 +328,7 @@ export function InvoiceBuilder() {
               name="billedBy.state"
               control={control}
               label="State / Province"
-              options={getStateOptions(billedByCountry || '')}
+              options={billedByStateOptions}
               placeholder="Select state..."
               error={errors.billedBy?.state?.message}
             />
@@ -358,7 +366,7 @@ export function InvoiceBuilder() {
               name="billedTo.state"
               control={control}
               label="State / Province"
-              options={getStateOptions(billedToCountry || '')}
+              options={billedToStateOptions}
               placeholder="Select state..."
               error={errors.billedTo?.state?.message}
             />
