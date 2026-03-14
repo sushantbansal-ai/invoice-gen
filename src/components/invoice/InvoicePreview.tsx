@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { track } from '@vercel/analytics'
 import { useInvoiceStore } from '@/store/invoiceStore'
 import { calculateTotals } from '@/lib/calculations'
-import { generatePDF, generatePDFBlob } from '@/lib/pdf'
+import { captureElement, generatePDFFromCanvas, generatePDFBlobFromCanvas } from '@/lib/pdf'
 import { ClassicPurple } from './templates/ClassicPurple'
 import { ModernMinimal } from './templates/ModernMinimal'
 import { ProfessionalDark } from './templates/ProfessionalDark'
@@ -34,6 +34,7 @@ const TEMPLATE_MAP: Record<string, React.ComponentType<TemplateComponentProps>> 
 }
 
 const INVOICE_WIDTH_PX = 794 // A4 at 96dpi
+const CANVAS_DEBOUNCE_MS = 400
 
 export function InvoicePreview() {
   const invoice = useInvoiceStore((s) => s.invoice)
@@ -42,8 +43,8 @@ export function InvoicePreview() {
   const isDriveUploading = useInvoiceStore((s) => s.isDriveUploading)
   const setIsDriveUploading = useInvoiceStore((s) => s.setIsDriveUploading)
 
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(1)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [isRenderingCanvas, setIsRenderingCanvas] = useState(true)
   const [driveSuccess, setDriveSuccess] = useState<{ id: string; link: string } | null>(null)
   const [driveError, setDriveError] = useState<string | null>(null)
   const [driveInitialized, setDriveInitialized] = useState(false)
@@ -54,20 +55,32 @@ export function InvoicePreview() {
   )
   const TemplateComponent = TEMPLATE_MAP[invoice.template] || ClassicPurple
 
-  // Measure container and update scale
+  // Re-render canvas whenever the invoice changes (debounced)
   useEffect(() => {
-    const updateScale = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth - 32 // padding
-        setScale(Math.min(containerWidth / INVOICE_WIDTH_PX, 1))
-      }
-    }
+    let cancelled = false
+    setIsRenderingCanvas(true)
 
-    updateScale()
-    const observer = new ResizeObserver(updateScale)
-    if (containerRef.current) observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [])
+    const timer = setTimeout(async () => {
+      try {
+        const offscreen = await captureElement('invoice-preview-root')
+        if (!cancelled && canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d')
+          canvasRef.current.width = offscreen.width
+          canvasRef.current.height = offscreen.height
+          ctx?.drawImage(offscreen, 0, 0)
+        }
+      } catch (e) {
+        console.error('Canvas render failed:', e)
+      } finally {
+        if (!cancelled) setIsRenderingCanvas(false)
+      }
+    }, CANVAS_DEBOUNCE_MS)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [invoice, totals])
 
   // Init Google Drive client
   useEffect(() => {
@@ -79,10 +92,11 @@ export function InvoicePreview() {
   }, [])
 
   async function handleDownloadPDF() {
+    if (!canvasRef.current) return
     setIsExporting(true)
     try {
       const filename = `invoice-${invoice.invoiceNo || 'draft'}.pdf`
-      await generatePDF('invoice-preview-root', filename)
+      generatePDFFromCanvas(canvasRef.current, filename)
       track('pdf_downloaded', {
         template: invoice.template,
         currency: invoice.currency,
@@ -104,6 +118,7 @@ export function InvoicePreview() {
   }
 
   async function handleUploadToDrive() {
+    if (!canvasRef.current) return
     setDriveError(null)
     setDriveSuccess(null)
     setIsDriveUploading(true)
@@ -116,7 +131,7 @@ export function InvoicePreview() {
       }
 
       const filename = `invoice-${invoice.invoiceNo || 'draft'}.pdf`
-      const blob = await generatePDFBlob('invoice-preview-root')
+      const blob = generatePDFBlobFromCanvas(canvasRef.current)
       const result = await uploadInvoiceToDrive(blob, filename, token)
       setDriveSuccess({ id: result.id, link: result.webViewLink })
       track('pdf_uploaded_to_drive', {
@@ -139,9 +154,25 @@ export function InvoicePreview() {
     }
   }
 
-
   return (
     <div className="flex flex-col h-full">
+      {/* Off-screen HTML invoice — captured by html2canvas, never shown to user */}
+      <div
+        id="invoice-preview-root"
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: 0,
+          width: `${INVOICE_WIDTH_PX}px`,
+          minHeight: '1123px',
+          backgroundColor: '#ffffff',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      >
+        <TemplateComponent invoice={invoice} totals={totals} />
+      </div>
+
       {/* Action Bar */}
       <div className="flex-shrink-0 flex items-center justify-between gap-2 px-4 py-3 bg-white border-b border-gray-200">
         <span className="text-sm font-semibold text-gray-600">Preview</span>
@@ -149,7 +180,7 @@ export function InvoicePreview() {
           {/* Download PDF */}
           <button
             onClick={handleDownloadPDF}
-            disabled={isExporting}
+            disabled={isExporting || isRenderingCanvas}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7C3AED] hover:bg-[#5b21b6] disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
           >
             {isExporting ? (
@@ -174,7 +205,7 @@ export function InvoicePreview() {
           {(driveInitialized || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) && (
             <button
               onClick={handleUploadToDrive}
-              disabled={isDriveUploading}
+              disabled={isDriveUploading || isRenderingCanvas}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 disabled:opacity-60 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               {isDriveUploading ? (
@@ -219,35 +250,33 @@ export function InvoicePreview() {
         </div>
       )}
 
-      {/* Preview Canvas */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto bg-gray-100 p-4"
-      >
+      {/* Canvas Preview */}
+      <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
         <div
           className="relative mx-auto"
           style={{
-            width: `${INVOICE_WIDTH_PX * scale}px`,
-            height: `${1123 * scale}px`,
+            maxWidth: `${INVOICE_WIDTH_PX}px`,
             boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
             borderRadius: '4px',
             overflow: 'hidden',
+            backgroundColor: '#ffffff',
           }}
         >
-          {/* Actual invoice at full A4 size, scaled down visually */}
-          <div
-            id="invoice-preview-root"
-            className="invoice-scale-wrapper"
-            style={{
-              width: `${INVOICE_WIDTH_PX}px`,
-              minHeight: '1123px',
-              transform: `scale(${scale})`,
-              transformOrigin: 'top left',
-              backgroundColor: '#ffffff',
-            }}
-          >
-            <TemplateComponent invoice={invoice} totals={totals} />
-          </div>
+          <canvas
+            ref={canvasRef}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+          />
+          {isRenderingCanvas && (
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}
+            >
+              <svg className="animate-spin h-6 w-6 text-[#7C3AED]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </div>
+          )}
         </div>
       </div>
     </div>
