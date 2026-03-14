@@ -155,20 +155,24 @@ export function InvoicePreview() {
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ position: 'relative' }}>
-      {/* Off-screen HTML invoice — captured by html2canvas, never shown to user.
-          Uses position:absolute (not fixed) so html2canvas doesn't apply a
-          viewport-scroll offset when the page has been scrolled. */}
+    <div className="flex flex-col h-full">
+      {/* Hidden HTML invoice — source for html2canvas, invisible to users.
+          Sits at fixed (0,0) so it's inside html2canvas's windowBounds.
+          visibility:hidden hides it visually; onclone restores it for capture.
+          scrollX/scrollY:0 in captureElement keeps windowBounds anchored at the
+          viewport origin regardless of how far the page is scrolled. */}
       <div
         id="invoice-preview-root"
         style={{
-          position: 'absolute',
-          left: '-9999px',
+          position: 'fixed',
           top: 0,
+          left: 0,
           width: `${INVOICE_WIDTH_PX}px`,
           minHeight: '1123px',
           backgroundColor: '#ffffff',
+          visibility: 'hidden',
           pointerEvents: 'none',
+          zIndex: -9999,
         }}
         aria-hidden
       >

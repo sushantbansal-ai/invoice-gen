@@ -14,7 +14,18 @@ export async function captureElement(elementId: string): Promise<HTMLCanvasEleme
     allowTaint: true,
     backgroundColor: '#ffffff',
     logging: false,
+    // Override window scroll so html2canvas treats scroll as (0,0).
+    // Without this, windowBounds.y = window.scrollY, which can push the
+    // off-screen fixed element (at viewport top:0) outside the render window
+    // when the page is scrolled, producing a blank canvas.
+    scrollX: 0,
+    scrollY: 0,
     onclone: (clonedDoc) => {
+      // The source element uses visibility:hidden to stay invisible to users.
+      // Restore visibility so html2canvas actually renders its contents.
+      const rootEl = clonedDoc.getElementById(elementId)
+      if (rootEl) rootEl.style.visibility = 'visible'
+
       const allEls = clonedDoc.querySelectorAll<HTMLElement>('*')
       allEls.forEach((el) => {
         el.style.boxShadow = 'none'
