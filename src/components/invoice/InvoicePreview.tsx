@@ -155,12 +155,14 @@ export function InvoicePreview() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Off-screen HTML invoice — captured by html2canvas, never shown to user */}
+    <div className="flex flex-col h-full" style={{ position: 'relative' }}>
+      {/* Off-screen HTML invoice — captured by html2canvas, never shown to user.
+          Uses position:absolute (not fixed) so html2canvas doesn't apply a
+          viewport-scroll offset when the page has been scrolled. */}
       <div
         id="invoice-preview-root"
         style={{
-          position: 'fixed',
+          position: 'absolute',
           left: '-9999px',
           top: 0,
           width: `${INVOICE_WIDTH_PX}px`,
