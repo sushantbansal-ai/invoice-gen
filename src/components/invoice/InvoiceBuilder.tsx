@@ -241,19 +241,12 @@ export function InvoiceBuilder() {
             error={errors.invoiceNo?.message}
             {...register('invoiceNo')}
           />
-          <div>
-            <label className="text-xs font-medium text-gray-700 block mb-1">
-              Status
-            </label>
-            <select
-              {...register('status')}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#7C3AED] focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
-            >
-              {STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
+          <Input
+            as="select"
+            label="Status"
+            options={STATUSES}
+            {...register('status')}
+          />
           <Input
             label="Invoice Date"
             type="date"
