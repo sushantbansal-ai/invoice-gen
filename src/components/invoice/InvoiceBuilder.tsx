@@ -368,6 +368,7 @@ export function InvoiceBuilder() {
             <Input label="Email" type="email" error={errors.billedTo?.email?.message} {...register('billedTo.email')} />
             <Input label="Phone" error={errors.billedTo?.phone?.message} {...register('billedTo.phone')} />
           </div>
+          <Input label="GSTIN / Tax Number (optional)" error={errors.billedTo?.gstin?.message} {...register('billedTo.gstin')} />
         </div>
       </div>
 
@@ -415,7 +416,7 @@ export function InvoiceBuilder() {
         <div className="grid grid-cols-2 gap-3 mt-3">
           <Input
             label="Tax Name (optional)"
-            placeholder="e.g. GST, VAT, HST"
+            placeholder="e.g. IGST, VAT, HST"
             {...register('taxName')}
           />
           <Input
@@ -426,6 +427,29 @@ export function InvoiceBuilder() {
             max="100"
             placeholder="0"
             {...register('taxRate')}
+          />
+        </div>
+        {/* Row 3: CGST | SGST */}
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <Input
+            label="CGST Rate (%)"
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            placeholder="0"
+            helperText="Central GST (intra-state)"
+            {...register('cgstRate')}
+          />
+          <Input
+            label="SGST Rate (%)"
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            placeholder="0"
+            helperText="State GST (intra-state)"
+            {...register('sgstRate')}
           />
         </div>
       </div>
@@ -515,7 +539,9 @@ export function InvoiceBuilder() {
               const items = form.getValues('items')
               const taxRate = Number(form.getValues('taxRate')) || 0
               const discountRate = Number(form.getValues('discountRate')) || 0
-              const { total } = calculateTotals(items, taxRate, discountRate)
+              const cgstRate = Number(form.getValues('cgstRate')) || 0
+              const sgstRate = Number(form.getValues('sgstRate')) || 0
+              const { total } = calculateTotals(items, taxRate, discountRate, cgstRate, sgstRate)
               setValue('payments', [
                 ...current,
                 {

@@ -50,8 +50,8 @@ export function InvoicePreview() {
   const [driveInitialized, setDriveInitialized] = useState(false)
 
   const totals = useMemo(
-    () => calculateTotals(invoice.items, invoice.taxRate, invoice.discountRate),
-    [invoice.items, invoice.taxRate, invoice.discountRate]
+    () => calculateTotals(invoice.items, invoice.taxRate, invoice.discountRate, invoice.cgstRate, invoice.sgstRate),
+    [invoice.items, invoice.taxRate, invoice.discountRate, invoice.cgstRate, invoice.sgstRate]
   )
   const TemplateComponent = TEMPLATE_MAP[invoice.template] || ClassicPurple
 

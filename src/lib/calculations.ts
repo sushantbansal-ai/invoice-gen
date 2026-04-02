@@ -39,6 +39,8 @@ export function formatNumber(amount: number): string {
 export interface InvoiceTotals {
   subtotal: number
   taxAmount: number
+  cgstAmount: number
+  sgstAmount: number
   discountAmount: number
   total: number
 }
@@ -47,10 +49,14 @@ export function calculateTotals(
   items: LineItem[],
   taxRate?: number,
   discountRate?: number,
+  cgstRate?: number,
+  sgstRate?: number,
 ): InvoiceTotals {
   const subtotal = calculateSubtotal(items)
   const taxAmount = taxRate ? calculateTax(subtotal, taxRate) : 0
+  const cgstAmount = cgstRate ? calculateTax(subtotal, cgstRate) : 0
+  const sgstAmount = sgstRate ? calculateTax(subtotal, sgstRate) : 0
   const discountAmount = discountRate ? calculateDiscount(subtotal, discountRate) : 0
-  const total = calculateTotal(subtotal, taxAmount, discountAmount)
-  return { subtotal, taxAmount, discountAmount, total }
+  const total = calculateTotal(subtotal, taxAmount + cgstAmount + sgstAmount, discountAmount)
+  return { subtotal, taxAmount, cgstAmount, sgstAmount, discountAmount, total }
 }

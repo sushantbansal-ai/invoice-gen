@@ -47,7 +47,7 @@ export function LineItemsTable({
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs font-semibold">
               <th className="text-left py-2 px-2 rounded-l-lg w-6">#</th>
-              <th className="text-left py-2 px-2">Description</th>
+              <th className="text-left py-2 px-2">Description / HSN/SAC</th>
               <th className="text-right py-2 px-2 w-20">Qty</th>
               <th className="text-right py-2 px-2 w-28">Rate</th>
               <th className="text-right py-2 px-2 w-28">Amount</th>
@@ -63,6 +63,11 @@ export function LineItemsTable({
                     {...register(`items.${index}.description`)}
                     placeholder="Item description"
                     className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded"
+                  />
+                  <input
+                    {...register(`items.${index}.hsn`)}
+                    placeholder="HSN/SAC code"
+                    className="w-full text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded text-gray-500 mt-0.5"
                   />
                   {errors.items?.[index]?.description && (
                     <p className="text-red-500 text-xs mt-0.5">{errors.items[index]?.description?.message}</p>
@@ -145,6 +150,11 @@ export function LineItemsTable({
               placeholder="Item description"
               className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
             />
+            <input
+              {...register(`items.${index}.hsn`)}
+              placeholder="HSN/SAC code (optional)"
+              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none text-gray-500"
+            />
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Qty</label>
@@ -183,7 +193,7 @@ export function LineItemsTable({
       <button
         type="button"
         onClick={() =>
-          append({ id: crypto.randomUUID(), description: '', quantity: 1, rate: 0, amount: 0 })
+          append({ id: crypto.randomUUID(), description: '', hsn: '', quantity: 1, rate: 0, amount: 0 })
         }
         className="mt-3 flex items-center gap-1.5 text-sm text-[#7C3AED] hover:text-[#5b21b6] font-medium transition-colors"
       >

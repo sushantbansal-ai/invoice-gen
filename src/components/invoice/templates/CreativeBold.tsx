@@ -216,7 +216,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
           )}
 
           <div style={{ backgroundColor: LIGHT_BG, borderRadius: '8px', padding: '16px', borderTop: `3px solid ${VIOLET}` }}>
-            {(totals.taxAmount > 0 || totals.discountAmount > 0) && (
+            {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <span style={{ color: '#9CA3AF', fontSize: '12px' }}>Subtotal</span>
@@ -226,6 +226,18 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ color: '#9CA3AF', fontSize: '12px' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
                     <span style={{ color: '#374151', fontSize: '12px' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
+                  </div>
+                )}
+                {totals.cgstAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ color: '#9CA3AF', fontSize: '12px' }}>CGST ({invoice.cgstRate}%)</span>
+                    <span style={{ color: '#374151', fontSize: '12px' }}>+{formatCurrency(totals.cgstAmount, invoice.currency)}</span>
+                  </div>
+                )}
+                {totals.sgstAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ color: '#9CA3AF', fontSize: '12px' }}>SGST ({invoice.sgstRate}%)</span>
+                    <span style={{ color: '#374151', fontSize: '12px' }}>+{formatCurrency(totals.sgstAmount, invoice.currency)}</span>
                   </div>
                 )}
                 {totals.discountAmount > 0 && (

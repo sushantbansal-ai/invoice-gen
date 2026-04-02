@@ -29,6 +29,7 @@ const defaultInvoice: Invoice = {
     state: '',
     country: '',
     zipCode: '',
+    gstin: '',
     email: '',
     phone: '',
   },
@@ -36,6 +37,7 @@ const defaultInvoice: Invoice = {
     {
       id: uuidv4(),
       description: 'Professional Services',
+      hsn: '',
       quantity: 1,
       rate: 1000,
       amount: 1000,
@@ -44,6 +46,8 @@ const defaultInvoice: Invoice = {
   currency: 'USD',
   taxName: undefined,
   taxRate: undefined,
+  cgstRate: undefined,
+  sgstRate: undefined,
   discountRate: undefined,
   bankDetails: {
     accountName: '',

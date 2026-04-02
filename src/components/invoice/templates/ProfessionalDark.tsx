@@ -215,7 +215,7 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
           )}
 
           <div style={{ backgroundColor: SURFACE, borderRadius: '6px', padding: '16px' }}>
-            {(totals.taxAmount > 0 || totals.discountAmount > 0) && (
+            {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>Subtotal</span>
@@ -225,6 +225,18 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
                     <span style={{ color: TEXT_SECONDARY, fontSize: '12px' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
+                  </div>
+                )}
+                {totals.cgstAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>CGST ({invoice.cgstRate}%)</span>
+                    <span style={{ color: TEXT_SECONDARY, fontSize: '12px' }}>+{formatCurrency(totals.cgstAmount, invoice.currency)}</span>
+                  </div>
+                )}
+                {totals.sgstAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>SGST ({invoice.sgstRate}%)</span>
+                    <span style={{ color: TEXT_SECONDARY, fontSize: '12px' }}>+{formatCurrency(totals.sgstAmount, invoice.currency)}</span>
                   </div>
                 )}
                 {totals.discountAmount > 0 && (

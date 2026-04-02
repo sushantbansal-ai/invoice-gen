@@ -21,6 +21,7 @@ export interface BilledParty {
 export interface LineItem {
   id: string
   description: string
+  hsn?: string
   quantity: number
   rate: number
   amount: number
@@ -66,6 +67,8 @@ export interface Invoice {
   currency: CurrencyCode
   taxName?: string
   taxRate?: number
+  cgstRate?: number
+  sgstRate?: number
   discountRate?: number
 
   bankDetails?: BankDetails
@@ -87,7 +90,10 @@ const billedPartySchema = z.object({
   country: z.string().min(1, 'Country is required'),
   zipCode: z.string().min(1, 'ZIP/Postal code is required'),
   gstin: z.string().optional(),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().optional().refine(
+    (val) => !val || val === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    { message: 'Invalid email address' }
+  ),
   phone: z.string().optional(),
   website: z.string().optional(),
   attendee: z.string().optional(),
@@ -96,6 +102,7 @@ const billedPartySchema = z.object({
 export const lineItemSchema = z.object({
   id: z.string(),
   description: z.string().min(1, 'Description is required'),
+  hsn: z.string().optional(),
   quantity: z.coerce.number().min(0.01, 'Quantity must be > 0'),
   rate: z.coerce.number().min(0, 'Rate must be >= 0'),
   amount: z.coerce.number(),
@@ -139,6 +146,8 @@ export const invoiceSchema = z.object({
   currency: z.enum(['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY', 'SGD', 'AED', 'CHF']),
   taxName: z.string().optional(),
   taxRate: z.coerce.number().min(0).max(100).optional(),
+  cgstRate: z.coerce.number().min(0).max(100).optional(),
+  sgstRate: z.coerce.number().min(0).max(100).optional(),
   discountRate: z.coerce.number().min(0).max(100).optional(),
   bankDetails: bankDetailsSchema,
   conversionDetails: conversionDetailsSchema,

@@ -63,6 +63,9 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
   const hasConversion = invoice.conversionDetails?.conversionRate
   const hasPayments = invoice.payments && invoice.payments.length > 0
   const taxRate = invoice.taxRate || 0
+  const cgstRate = invoice.cgstRate || 0
+  const sgstRate = invoice.sgstRate || 0
+  const hasGstBreakdown = cgstRate > 0 || sgstRate > 0
 
   return (
     <div
@@ -223,10 +226,17 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
             <tr style={{ borderBottom: `2px solid ${BLUE}` }}>
               <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '700', color: BLUE }}>#</th>
               <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '700', color: BLUE }}>Item</th>
+              <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: BLUE }}>HSN/SAC</th>
               {taxRate > 0 && (
                 <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: BLUE, whiteSpace: 'nowrap' as const }}>
                   {invoice.taxName || 'Tax'} Rate
                 </th>
+              )}
+              {hasGstBreakdown && (
+                <>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: BLUE }}>CGST%</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: BLUE }}>SGST%</th>
+                </>
               )}
               <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>Qty</th>
               <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>Rate</th>
@@ -242,7 +252,9 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
           <tbody>
             {invoice.items.map((item, index) => {
               const itemTax = taxRate > 0 ? Math.round(item.amount * (taxRate / 100) * 100) / 100 : 0
-              const itemTotal = item.amount + itemTax
+              const itemCgst = cgstRate > 0 ? Math.round(item.amount * (cgstRate / 100) * 100) / 100 : 0
+              const itemSgst = sgstRate > 0 ? Math.round(item.amount * (sgstRate / 100) * 100) / 100 : 0
+              const itemTotal = item.amount + itemTax + itemCgst + itemSgst
               return (
                 <tr
                   key={item.id}
@@ -253,8 +265,15 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
                 >
                   <td style={{ padding: '10px 8px', color: TEXT_GRAY, fontSize: '12px' }}>{index + 1}.</td>
                   <td style={{ padding: '10px 8px', color: TEXT_DARK }}>{item.description}</td>
+                  <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY, fontSize: '12px' }}>{item.hsn || '—'}</td>
                   {taxRate > 0 && (
                     <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY }}>{taxRate}%</td>
+                  )}
+                  {hasGstBreakdown && (
+                    <>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY, fontSize: '12px' }}>{cgstRate}%</td>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY, fontSize: '12px' }}>{sgstRate}%</td>
+                    </>
                   )}
                   <td style={{ padding: '10px 8px', textAlign: 'right', color: TEXT_GRAY }}>{item.quantity}</td>
                   <td style={{ padding: '10px 8px', textAlign: 'right', color: TEXT_GRAY }}>
@@ -362,12 +381,30 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
               </span>
             </div>
 
-            {/* Tax row */}
+            {/* Tax / IGST row */}
             {totals.taxAmount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #DBEAFE' }}>
                 <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>{invoice.taxName || 'Tax'} ({taxRate}%)</span>
                 <span style={{ fontWeight: '700', color: TEXT_DARK, fontSize: '13px' }}>
                   {currencySymbol}{formatNumber(totals.taxAmount)}
+                </span>
+              </div>
+            )}
+            {/* CGST row */}
+            {totals.cgstAmount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #DBEAFE' }}>
+                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>CGST ({cgstRate}%)</span>
+                <span style={{ fontWeight: '700', color: TEXT_DARK, fontSize: '13px' }}>
+                  {currencySymbol}{formatNumber(totals.cgstAmount)}
+                </span>
+              </div>
+            )}
+            {/* SGST row */}
+            {totals.sgstAmount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #DBEAFE' }}>
+                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>SGST ({sgstRate}%)</span>
+                <span style={{ fontWeight: '700', color: TEXT_DARK, fontSize: '13px' }}>
+                  {currencySymbol}{formatNumber(totals.sgstAmount)}
                 </span>
               </div>
             )}

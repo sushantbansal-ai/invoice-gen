@@ -240,7 +240,7 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
         {/* Totals */}
         <div style={{ padding: '16px' }}>
           {/* Subtotal / Tax / Discount */}
-          {(totals.taxAmount > 0 || totals.discountAmount > 0) && (
+          {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
             <div style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <span style={{ color: '#6B7280' }}>Subtotal</span>
@@ -250,6 +250,18 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <span style={{ color: '#6B7280' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
                   <span style={{ color: '#374151' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
+                </div>
+              )}
+              {totals.cgstAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ color: '#6B7280' }}>CGST ({invoice.cgstRate}%)</span>
+                  <span style={{ color: '#374151' }}>+{formatCurrency(totals.cgstAmount, invoice.currency)}</span>
+                </div>
+              )}
+              {totals.sgstAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ color: '#6B7280' }}>SGST ({invoice.sgstRate}%)</span>
+                  <span style={{ color: '#374151' }}>+{formatCurrency(totals.sgstAmount, invoice.currency)}</span>
                 </div>
               )}
               {totals.discountAmount > 0 && (
