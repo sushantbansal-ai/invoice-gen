@@ -54,11 +54,11 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
                 alignItems: 'center',
                 backgroundColor: status.bg,
                 color: status.text,
-                padding: '8px',
+                padding: '0px 8px 0px 8px',
+                lineHeight: 2,
                 borderRadius: '12px',
                 fontSize: '12px',
                 fontWeight: '600',
-                lineHeight: 1,
                 textAlign: 'center'
               }}
             >

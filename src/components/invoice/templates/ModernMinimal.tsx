@@ -82,13 +82,13 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
             alignItems: 'center',
             backgroundColor: status.bg,
             color: status.text,
-            padding: '3px 12px',
+            padding: '0px 8px 0px 8px',
+                lineHeight: 2,
             borderRadius: '20px',
             fontSize: '11px',
             fontWeight: '700',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
-            lineHeight: 1,
           }}>
             {status.label}
           </span>

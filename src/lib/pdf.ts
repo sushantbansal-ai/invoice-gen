@@ -31,6 +31,12 @@ export async function captureElement(elementId: string): Promise<HTMLCanvasEleme
         el.style.boxShadow = 'none'
         el.style.transition = 'none'
         el.style.animation = 'none'
+        // html2canvas doesn't support inline-flex; convert to inline-block
+        // so status badges render correctly in the PDF output.
+        if (el.style.display === 'inline-flex') {
+          el.style.display = 'inline-block'
+          el.style.verticalAlign = 'middle'
+        }
       })
     },
   })
