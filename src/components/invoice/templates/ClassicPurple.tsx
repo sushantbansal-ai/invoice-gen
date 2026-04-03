@@ -58,7 +58,7 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
                 borderRadius: '12px',
                 fontSize: '12px',
                 fontWeight: '600',
-                lineHeight: 15,
+                lineHeight: 1,
                 textAlign: 'center'
               }}
             >
