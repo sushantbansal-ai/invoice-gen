@@ -45,12 +45,16 @@ function LineItemRow({ control, register, errors, setValue, getValues, index, fi
       <td className="py-2 px-2 text-gray-400 text-xs">{index + 1}</td>
       <td className="py-2 px-2">
         <input
-          {...register(`items.${index}.description`)}
+          {...register(`items.${index}.description`, {
+            onChange: (e) => setValue(`items.${index}.description`, e.target.value),
+          })}
           placeholder="Item description"
           className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded"
         />
         <input
-          {...register(`items.${index}.hsn`)}
+          {...register(`items.${index}.hsn`, {
+            onChange: (e) => setValue(`items.${index}.hsn`, e.target.value),
+          })}
           placeholder="HSN/SAC code"
           className="w-full text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded text-gray-500 mt-0.5"
         />
@@ -131,12 +135,16 @@ function LineItemCard({ control, register, errors, setValue, getValues, index, f
         )}
       </div>
       <input
-        {...register(`items.${index}.description`)}
+        {...register(`items.${index}.description`, {
+          onChange: (e) => setValue(`items.${index}.description`, e.target.value),
+        })}
         placeholder="Item description"
         className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
       />
       <input
-        {...register(`items.${index}.hsn`)}
+        {...register(`items.${index}.hsn`, {
+          onChange: (e) => setValue(`items.${index}.hsn`, e.target.value),
+        })}
         placeholder="HSN/SAC code (optional)"
         className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none text-gray-500"
       />

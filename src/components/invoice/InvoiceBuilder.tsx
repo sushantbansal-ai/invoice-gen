@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, startTransition, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { v4 as uuidv4 } from 'uuid'
@@ -147,19 +147,19 @@ export function InvoiceBuilder() {
             ...item,
             id: item?.id || uuidv4(),
             description: item?.description || '',
+            hsn: item?.hsn || '',
             quantity: Number(item?.quantity) || 0,
             rate: Number(item?.rate) || 0,
             amount: calculateLineItemAmount(Number(item?.quantity) || 0, Number(item?.rate) || 0),
           }))
           // Preserve the template from the store — TemplateSelector updates the store
           // directly (not via this form), so values.template is always stale.
-          // startTransition defers the preview re-render so it doesn't block user input (INP).
-          startTransition(() => {
-            updateInvoice({
-              ...(values as InvoiceFormValues),
-              items,
-              template: useInvoiceStore.getState().invoice.template,
-            })
+          // No startTransition here — the preview uses direct HTML rendering (cheap),
+          // so deferring the update causes description/HSN changes to lag or be missed.
+          updateInvoice({
+            ...(values as InvoiceFormValues),
+            items,
+            template: useInvoiceStore.getState().invoice.template,
           })
         }
       }, 150)
