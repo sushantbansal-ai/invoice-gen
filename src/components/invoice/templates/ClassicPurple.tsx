@@ -21,6 +21,7 @@ function formatDate(dateStr: string): string {
 export function ClassicPurple({ invoice, totals, isPdfExport = false }: TemplateProps) {
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
+  const hasHsn = invoice.items.some(item => item.hsn)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -149,6 +150,12 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
               {[invoice.billedTo.country, invoice.billedTo.zipCode].filter(Boolean).join(' - ')}
             </div>
           )}
+          {invoice.billedTo.gstin && (
+            <div style={{ marginTop: '4px' }}>
+              <span style={{ fontWeight: '700', color: '#111827' }}>GSTIN: </span>
+              <span style={{ color: '#374151' }}>{invoice.billedTo.gstin}</span>
+            </div>
+          )}
           {invoice.billedTo.email && (
             <div style={{ color: '#374151', marginTop: '4px' }}>{invoice.billedTo.email}</div>
           )}
@@ -164,6 +171,7 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
           <tr style={{ backgroundColor: '#6539c0', color: '#FFFFFF' }}>
             <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', fontSize: '12px', borderRadius: '0' }}>#</th>
             <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', fontSize: '12px' }}>Item</th>
+            {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', fontSize: '12px' }}>HSN/SAC</th>}
             <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Quantity</th>
             <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Rate</th>
             <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Amount</th>
@@ -177,6 +185,7 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
             >
               <td style={{ padding: '10px 12px', color: '#6B7280' }}>{index + 1}.</td>
               <td style={{ padding: '10px 12px', color: '#111827' }}>{item.description}</td>
+              {hasHsn && <td style={{ padding: '10px 12px', textAlign: 'center', color: '#6B7280', fontSize: '12px' }}>{item.hsn || '—'}</td>}
               <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{item.quantity}</td>
               <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>
                 {currencySymbol}{formatNumber(item.rate)}

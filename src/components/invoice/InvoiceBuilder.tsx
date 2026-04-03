@@ -224,7 +224,7 @@ export function InvoiceBuilder() {
   const billedToStateOptions = useMemo(() => getStateOptions(billedToCountry || ''), [billedToCountry])
 
   return (
-    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+    <form className="space-y-4" onSubmit={(e) => e.preventDefault()} noValidate>
       {/* Template Selection */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <SectionTitle>Choose Template</SectionTitle>
@@ -234,7 +234,7 @@ export function InvoiceBuilder() {
       {/* Invoice Header */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <SectionTitle>Invoice Details</SectionTitle>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 items-start">
           <Input
             label="Invoice Number"
             required

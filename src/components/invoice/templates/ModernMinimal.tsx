@@ -21,6 +21,7 @@ function formatDate(dateStr: string): string {
 export function ModernMinimal({ invoice, totals }: TemplateProps) {
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
+  const hasHsn = invoice.items.some(item => item.hsn)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -137,6 +138,9 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
               {[invoice.billedTo.country, invoice.billedTo.zipCode].filter(Boolean).join(' ')}
             </div>
           )}
+          {invoice.billedTo.gstin && (
+            <div style={{ color: '#475569', marginTop: '4px', fontSize: '12px' }}>GSTIN: {invoice.billedTo.gstin}</div>
+          )}
           {invoice.billedTo.email && <div style={{ color: '#2563EB', marginTop: '4px', fontSize: '12px' }}>{invoice.billedTo.email}</div>}
           {invoice.billedTo.phone && <div style={{ color: '#475569', fontSize: '12px' }}>{invoice.billedTo.phone}</div>}
         </div>
@@ -148,6 +152,7 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
           <tr style={{ backgroundColor: '#EFF6FF', borderBottom: '2px solid #2563EB' }}>
             <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>#</th>
             <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Description</th>
+            {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>HSN/SAC</th>}
             <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Qty</th>
             <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Rate</th>
             <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Amount</th>
@@ -158,6 +163,7 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
             <tr key={item.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
               <td style={{ padding: '12px', color: '#94A3B8', fontSize: '12px' }}>{index + 1}</td>
               <td style={{ padding: '12px', color: '#0F172A' }}>{item.description}</td>
+              {hasHsn && <td style={{ padding: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>{item.hsn || '—'}</td>}
               <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>{item.quantity}</td>
               <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>
                 {currencySymbol}{formatNumber(item.rate)}

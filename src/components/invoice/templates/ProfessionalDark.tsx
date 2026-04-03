@@ -28,6 +28,7 @@ const STATUS_DARK: Record<string, { label: string; border: string; color: string
 export function ProfessionalDark({ invoice, totals }: TemplateProps) {
   const status = STATUS_DARK[invoice.status] || STATUS_DARK.unpaid
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
+  const hasHsn = invoice.items.some(item => item.hsn)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -140,6 +141,9 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
                 {[invoice.billedTo.country, invoice.billedTo.zipCode].filter(Boolean).join(' ')}
               </div>
             )}
+            {invoice.billedTo.gstin && (
+              <div style={{ color: TEXT_SECONDARY, fontSize: '11px', marginTop: '4px' }}>GSTIN: {invoice.billedTo.gstin}</div>
+            )}
             {invoice.billedTo.email && <div style={{ color: TEXT_SECONDARY, fontSize: '11px', marginTop: '4px' }}>{invoice.billedTo.email}</div>}
           </div>
         </div>
@@ -150,6 +154,7 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
             <tr style={{ backgroundColor: '#0F1B2D' }}>
               <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>#</th>
               <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Description</th>
+              {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>HSN/SAC</th>}
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Qty</th>
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Rate</th>
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Amount</th>
@@ -166,6 +171,7 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
               >
                 <td style={{ padding: '11px 12px', color: TEXT_MUTED, fontSize: '12px' }}>{index + 1}</td>
                 <td style={{ padding: '11px 12px', color: TEXT_PRIMARY }}>{item.description}</td>
+                {hasHsn && <td style={{ padding: '11px 12px', textAlign: 'center', color: TEXT_MUTED, fontSize: '12px' }}>{item.hsn || '—'}</td>}
                 <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>{item.quantity}</td>
                 <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>
                   {currencySymbol}{formatNumber(item.rate)}

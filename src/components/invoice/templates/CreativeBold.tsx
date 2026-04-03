@@ -21,6 +21,7 @@ function formatDate(dateStr: string): string {
 export function CreativeBold({ invoice, totals }: TemplateProps) {
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
+  const hasHsn = invoice.items.some(item => item.hsn)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -139,6 +140,9 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
                 {[invoice.billedTo.country, invoice.billedTo.zipCode].filter(Boolean).join(' ')}
               </div>
             )}
+            {invoice.billedTo.gstin && (
+              <div style={{ color: '#6B7280', fontSize: '11px', marginTop: '4px' }}>GSTIN: {invoice.billedTo.gstin}</div>
+            )}
             {invoice.billedTo.email && <div style={{ color: VIOLET, fontSize: '11px', marginTop: '4px' }}>{invoice.billedTo.email}</div>}
           </div>
         </div>
@@ -149,6 +153,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
             <tr style={{ background: GRADIENT }}>
               <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>#</th>
               <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Item</th>
+              {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>HSN/SAC</th>}
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Qty</th>
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Rate</th>
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Amount</th>
@@ -165,6 +170,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
               >
                 <td style={{ padding: '11px 12px', color: '#9CA3AF', fontSize: '12px' }}>{index + 1}.</td>
                 <td style={{ padding: '11px 12px', color: '#111827' }}>{item.description}</td>
+                {hasHsn && <td style={{ padding: '11px 12px', textAlign: 'center', color: '#9CA3AF', fontSize: '12px' }}>{item.hsn || '—'}</td>}
                 <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>{item.quantity}</td>
                 <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>
                   {currencySymbol}{formatNumber(item.rate)}
