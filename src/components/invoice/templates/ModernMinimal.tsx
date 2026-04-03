@@ -78,7 +78,8 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
             INVOICE
           </div>
           <span style={{
-            display: 'inline-block',
+            display: 'inline-flex',
+            alignItems: 'center',
             backgroundColor: status.bg,
             color: status.text,
             padding: '3px 12px',

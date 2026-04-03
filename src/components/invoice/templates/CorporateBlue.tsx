@@ -92,6 +92,8 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
           </span>
           <span
             style={{
+              display: 'inline-flex',
+              alignItems: 'center',
               backgroundColor: status.bg,
               color: status.text,
               padding: '4px 12px',

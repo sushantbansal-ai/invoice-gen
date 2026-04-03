@@ -84,7 +84,8 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
               <img src={invoice.logo} alt="Logo" style={{ maxHeight: '70px', maxWidth: '160px', objectFit: 'contain', marginBottom: '10px', display: 'block', marginLeft: 'auto' }} />
             ) : null}
             <span style={{
-              display: 'inline-block',
+              display: 'inline-flex',
+              alignItems: 'center',
               border: `2px solid ${status.border}`,
               color: status.color,
               padding: '4px 14px',
