@@ -115,7 +115,7 @@ export function InvoiceBuilder() {
     },
   })
 
-  const { register, control, watch, setValue, formState: { errors } } = form
+  const { register, control, watch, setValue, getValues, formState: { errors } } = form
 
   // On mount: pre-fill billedBy + logo from saved profile if current form is blank
   useEffect(() => {
@@ -380,6 +380,7 @@ export function InvoiceBuilder() {
           register={register}
           errors={errors}
           setValue={setValue}
+          getValues={getValues}
           currency={currency}
         />
       </div>

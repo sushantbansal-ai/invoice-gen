@@ -1,6 +1,6 @@
 'use client'
 
-import { useFieldArray, useWatch, type Control, type UseFormRegister, type FieldErrors, type UseFormSetValue } from 'react-hook-form'
+import { useFieldArray, useWatch, type Control, type UseFormRegister, type FieldErrors, type UseFormSetValue, type UseFormGetValues } from 'react-hook-form'
 import { calculateLineItemAmount, formatNumber } from '@/lib/calculations'
 import { CURRENCY_SYMBOLS } from '@/types/invoice'
 import type { InvoiceFormValues } from '@/types/invoice'
@@ -10,7 +10,168 @@ interface LineItemsTableProps {
   register: UseFormRegister<InvoiceFormValues>
   errors: FieldErrors<InvoiceFormValues>
   setValue: UseFormSetValue<InvoiceFormValues>
+  getValues: UseFormGetValues<InvoiceFormValues>
   currency: string
+}
+
+interface RowProps {
+  control: Control<InvoiceFormValues>
+  register: UseFormRegister<InvoiceFormValues>
+  errors: FieldErrors<InvoiceFormValues>
+  setValue: UseFormSetValue<InvoiceFormValues>
+  getValues: UseFormGetValues<InvoiceFormValues>
+  index: number
+  fieldId: string
+  currencySymbol: string
+  canRemove: boolean
+  onRemove: () => void
+}
+
+function LineItemRow({ control, register, errors, setValue, getValues, index, fieldId, currencySymbol, canRemove, onRemove }: RowProps) {
+  // Scoped watch — only re-renders this row when its own amount changes
+  const amount = useWatch({ control, name: `items.${index}.amount` })
+
+  function handleQtyRateChange(fieldName: 'quantity' | 'rate', value: string) {
+    const num = parseFloat(value) || 0
+    setValue(`items.${index}.${fieldName}`, num)
+    const current = getValues(`items.${index}`)
+    const qty = fieldName === 'quantity' ? num : (Number(current.quantity) || 0)
+    const rate = fieldName === 'rate' ? num : (Number(current.rate) || 0)
+    setValue(`items.${index}.amount`, calculateLineItemAmount(qty, rate))
+  }
+
+  return (
+    <tr key={fieldId} className="border-b border-gray-100 hover:bg-gray-50 group">
+      <td className="py-2 px-2 text-gray-400 text-xs">{index + 1}</td>
+      <td className="py-2 px-2">
+        <input
+          {...register(`items.${index}.description`)}
+          placeholder="Item description"
+          className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded"
+        />
+        <input
+          {...register(`items.${index}.hsn`)}
+          placeholder="HSN/SAC code"
+          className="w-full text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded text-gray-500 mt-0.5"
+        />
+        {errors.items?.[index]?.description && (
+          <p className="text-red-500 text-xs mt-0.5">{errors.items[index]?.description?.message}</p>
+        )}
+      </td>
+      <td className="py-2 px-2">
+        <input
+          id={`items.${index}.quantity`}
+          {...register(`items.${index}.quantity`, {
+            onChange: (e) => handleQtyRateChange('quantity', e.target.value),
+          })}
+          type="number"
+          step="0.01"
+          min="0"
+          className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] rounded px-1 py-0.5 outline-none text-right focus:ring-1 focus:ring-[#7C3AED]"
+        />
+      </td>
+      <td className="py-2 px-2">
+        <div className="relative">
+          <span className="absolute left-1 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none">{currencySymbol}</span>
+          <input
+            id={`items.${index}.rate`}
+            {...register(`items.${index}.rate`, {
+              onChange: (e) => handleQtyRateChange('rate', e.target.value),
+            })}
+            type="number"
+            step="0.01"
+            min="0"
+            className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] rounded pl-4 pr-1 py-0.5 outline-none text-right focus:ring-1 focus:ring-[#7C3AED]"
+          />
+        </div>
+      </td>
+      <td className="py-2 px-2 text-right text-sm font-semibold text-gray-700">
+        <input {...register(`items.${index}.amount`)} type="hidden" />
+        <span>{currencySymbol}{formatNumber(parseFloat(String(amount ?? 0)))}</span>
+      </td>
+      <td className="py-2 px-2">
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={!canRemove}
+          className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 disabled:opacity-0 disabled:cursor-not-allowed p-1 rounded"
+          title="Remove item"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </td>
+    </tr>
+  )
+}
+
+function LineItemCard({ control, register, errors, setValue, getValues, index, fieldId, currencySymbol, canRemove, onRemove }: RowProps) {
+  const amount = useWatch({ control, name: `items.${index}.amount` })
+
+  function handleQtyRateChange(fieldName: 'quantity' | 'rate', value: string) {
+    const num = parseFloat(value) || 0
+    setValue(`items.${index}.${fieldName}`, num)
+    const current = getValues(`items.${index}`)
+    const qty = fieldName === 'quantity' ? num : (Number(current.quantity) || 0)
+    const rate = fieldName === 'rate' ? num : (Number(current.rate) || 0)
+    setValue(`items.${index}.amount`, calculateLineItemAmount(qty, rate))
+  }
+
+  return (
+    <div key={fieldId} className="border border-gray-200 rounded-lg p-3 space-y-2">
+      <div className="flex justify-between items-start">
+        <span className="text-xs text-gray-400">Item {index + 1}</span>
+        {canRemove && (
+          <button type="button" onClick={onRemove} className="text-red-400 hover:text-red-600 p-0.5">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+      <input
+        {...register(`items.${index}.description`)}
+        placeholder="Item description"
+        className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
+      />
+      <input
+        {...register(`items.${index}.hsn`)}
+        placeholder="HSN/SAC code (optional)"
+        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none text-gray-500"
+      />
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <label className="text-xs text-gray-500 block mb-1">Qty</label>
+          <input
+            {...register(`items.${index}.quantity`, {
+              onChange: (e) => handleQtyRateChange('quantity', e.target.value),
+            })}
+            type="number"
+            step="0.01"
+            className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 block mb-1">Rate</label>
+          <input
+            {...register(`items.${index}.rate`, {
+              onChange: (e) => handleQtyRateChange('rate', e.target.value),
+            })}
+            type="number"
+            step="0.01"
+            className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 block mb-1">Amount</label>
+          <div className="text-sm font-semibold text-gray-700 py-1.5 px-2 bg-gray-50 rounded">
+            {currencySymbol}{formatNumber(parseFloat(String(amount ?? 0)))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function LineItemsTable({
@@ -18,6 +179,7 @@ export function LineItemsTable({
   register,
   errors,
   setValue,
+  getValues,
   currency,
 }: LineItemsTableProps) {
   const { fields, append, remove } = useFieldArray({
@@ -25,19 +187,7 @@ export function LineItemsTable({
     name: 'items',
   })
 
-  // useWatch gives live updated values (field.amount from useFieldArray is stale after setValue)
-  const watchedItems = useWatch({ control, name: 'items' })
-
   const currencySymbol = CURRENCY_SYMBOLS[currency as keyof typeof CURRENCY_SYMBOLS] || '$'
-
-  function handleQtyRateChange(index: number, fieldName: 'quantity' | 'rate', value: string) {
-    const num = parseFloat(value) || 0
-    setValue(`items.${index}.${fieldName}`, num)
-    // Read sibling value from watchedItems (live form state) — avoids stale DOM reads on mobile
-    const qty = fieldName === 'quantity' ? num : (Number(watchedItems?.[index]?.quantity) || 0)
-    const rate = fieldName === 'rate' ? num : (Number(watchedItems?.[index]?.rate) || 0)
-    setValue(`items.${index}.amount`, calculateLineItemAmount(qty, rate))
-  }
 
   return (
     <div>
@@ -56,72 +206,19 @@ export function LineItemsTable({
           </thead>
           <tbody>
             {fields.map((field, index) => (
-              <tr key={field.id} className="border-b border-gray-100 hover:bg-gray-50 group">
-                <td className="py-2 px-2 text-gray-400 text-xs">{index + 1}</td>
-                <td className="py-2 px-2">
-                  <input
-                    {...register(`items.${index}.description`)}
-                    placeholder="Item description"
-                    className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded"
-                  />
-                  <input
-                    {...register(`items.${index}.hsn`)}
-                    placeholder="HSN/SAC code"
-                    className="w-full text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] focus:rounded px-1 py-0.5 outline-none placeholder:text-gray-300 focus:ring-1 focus:ring-[#7C3AED] rounded text-gray-500 mt-0.5"
-                  />
-                  {errors.items?.[index]?.description && (
-                    <p className="text-red-500 text-xs mt-0.5">{errors.items[index]?.description?.message}</p>
-                  )}
-                </td>
-                <td className="py-2 px-2">
-                  <input
-                    id={`items.${index}.quantity`}
-                    {...register(`items.${index}.quantity`, {
-                      onChange: (e) => handleQtyRateChange(index, 'quantity', e.target.value),
-                    })}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] rounded px-1 py-0.5 outline-none text-right focus:ring-1 focus:ring-[#7C3AED]"
-                  />
-                </td>
-                <td className="py-2 px-2">
-                  <div className="relative">
-                    <span className="absolute left-1 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none">{currencySymbol}</span>
-                    <input
-                      id={`items.${index}.rate`}
-                      {...register(`items.${index}.rate`, {
-                        onChange: (e) => handleQtyRateChange(index, 'rate', e.target.value),
-                      })}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] rounded pl-4 pr-1 py-0.5 outline-none text-right focus:ring-1 focus:ring-[#7C3AED]"
-                    />
-                  </div>
-                </td>
-                <td className="py-2 px-2 text-right text-sm font-semibold text-gray-700">
-                  <input {...register(`items.${index}.amount`)} type="hidden" />
-                  <span>
-                    {currencySymbol}{formatNumber(
-                      parseFloat(String(watchedItems?.[index]?.amount ?? field.amount ?? 0)),
-                    )}
-                  </span>
-                </td>
-                <td className="py-2 px-2">
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    disabled={fields.length === 1}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 disabled:opacity-0 disabled:cursor-not-allowed p-1 rounded"
-                    title="Remove item"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
+              <LineItemRow
+                key={field.id}
+                control={control}
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                getValues={getValues}
+                index={index}
+                fieldId={field.id}
+                currencySymbol={currencySymbol}
+                canRemove={fields.length > 1}
+                onRemove={() => remove(index)}
+              />
             ))}
           </tbody>
         </table>
@@ -130,62 +227,19 @@ export function LineItemsTable({
       {/* Mobile cards */}
       <div className="sm:hidden space-y-3">
         {fields.map((field, index) => (
-          <div key={field.id} className="border border-gray-200 rounded-lg p-3 space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-xs text-gray-400">Item {index + 1}</span>
-              {fields.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => remove(index)}
-                  className="text-red-400 hover:text-red-600 p-0.5"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <input
-              {...register(`items.${index}.description`)}
-              placeholder="Item description"
-              className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
-            />
-            <input
-              {...register(`items.${index}.hsn`)}
-              placeholder="HSN/SAC code (optional)"
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none text-gray-500"
-            />
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">Qty</label>
-                <input
-                  {...register(`items.${index}.quantity`, {
-                    onChange: (e) => handleQtyRateChange(index, 'quantity', e.target.value),
-                  })}
-                  type="number"
-                  step="0.01"
-                  className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">Rate</label>
-                <input
-                  {...register(`items.${index}.rate`, {
-                    onChange: (e) => handleQtyRateChange(index, 'rate', e.target.value),
-                  })}
-                  type="number"
-                  step="0.01"
-                  className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">Amount</label>
-                <div className="text-sm font-semibold text-gray-700 py-1.5 px-2 bg-gray-50 rounded">
-                  {currencySymbol}{formatNumber(parseFloat(String(watchedItems?.[index]?.amount ?? field.amount ?? 0)))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <LineItemCard
+            key={field.id}
+            control={control}
+            register={register}
+            errors={errors}
+            setValue={setValue}
+            getValues={getValues}
+            index={index}
+            fieldId={field.id}
+            currencySymbol={currencySymbol}
+            canRemove={fields.length > 1}
+            onRemove={() => remove(index)}
+          />
         ))}
       </div>
 
