@@ -88,6 +88,7 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
             fontWeight: '700',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
+            lineHeight: 1,
           }}>
             {status.label}
           </span>
