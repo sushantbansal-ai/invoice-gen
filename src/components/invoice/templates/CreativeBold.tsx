@@ -27,7 +27,11 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
     invoice.bankDetails?.bank || invoice.bankDetails?.routingNumber || invoice.bankDetails?.branch
-  const hasConversion = invoice.conversionDetails?.conversionRate
+  const hasConversion =
+    invoice.conversionDetails?.conversionRate !== undefined ||
+    invoice.conversionDetails?.convertedAmount !== undefined ||
+    invoice.conversionDetails?.charges !== undefined ||
+    Boolean(invoice.conversionDetails?.toCurrency)
   const hasPayments = invoice.payments && invoice.payments.length > 0
 
   const GRADIENT = 'linear-gradient(135deg, #EC4899, #8B5CF6)'
@@ -298,19 +302,23 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
 
             {hasConversion && (
               <div style={{ borderTop: '1px solid #E879F920', paddingTop: '10px', marginTop: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ color: '#9CA3AF', fontSize: '11px' }}>Conversion Rate</span>
-                  <span style={{ color: '#4B5563', fontSize: '11px' }}>{invoice.conversionDetails?.conversionRate}</span>
-                </div>
+                {invoice.conversionDetails?.conversionRate !== undefined && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ color: '#9CA3AF', fontSize: '11px' }}>Conversion Rate</span>
+                    <span style={{ color: '#4B5563', fontSize: '11px' }}>{invoice.conversionDetails.conversionRate}</span>
+                  </div>
+                )}
                 {invoice.conversionDetails?.charges !== undefined && invoice.conversionDetails.charges > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ color: '#9CA3AF', fontSize: '11px' }}>Bank Charges</span>
                     <span style={{ color: '#4B5563', fontSize: '11px' }}>{formatNumber(invoice.conversionDetails.charges)}</span>
                   </div>
                 )}
-                {invoice.conversionDetails?.convertedAmount && (
+                {invoice.conversionDetails?.convertedAmount !== undefined && (
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#9CA3AF', fontSize: '11px' }}>In {invoice.conversionDetails.toCurrency}</span>
+                    <span style={{ color: '#9CA3AF', fontSize: '11px' }}>
+                      {invoice.conversionDetails?.toCurrency ? `In ${invoice.conversionDetails.toCurrency}` : 'Converted Amount'}
+                    </span>
                     <span style={{ color: '#111827', fontSize: '11px', fontWeight: '600' }}>
                       {formatNumber(invoice.conversionDetails.convertedAmount)}
                     </span>

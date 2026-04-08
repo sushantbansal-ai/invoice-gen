@@ -153,6 +153,26 @@ export function InvoiceBuilder() {
             rate: Number(item?.rate) || 0,
             amount: calculateLineItemAmount(Number(item?.quantity) || 0, Number(item?.rate) || 0),
           }))
+          const conversionDetails = values.conversionDetails
+            ? {
+                toCurrency: values.conversionDetails.toCurrency || '',
+                conversionRate:
+                  values.conversionDetails.conversionRate !== undefined &&
+                  values.conversionDetails.conversionRate !== ''
+                    ? Number(values.conversionDetails.conversionRate)
+                    : undefined,
+                charges:
+                  values.conversionDetails.charges !== undefined &&
+                  values.conversionDetails.charges !== ''
+                    ? Number(values.conversionDetails.charges)
+                    : undefined,
+                convertedAmount:
+                  values.conversionDetails.convertedAmount !== undefined &&
+                  values.conversionDetails.convertedAmount !== ''
+                    ? Number(values.conversionDetails.convertedAmount)
+                    : undefined,
+              }
+            : undefined
           // Preserve the template from the store — TemplateSelector updates the store
           // directly (not via this form), so values.template is always stale.
           // No startTransition here — the preview uses direct HTML rendering (cheap),
@@ -160,6 +180,7 @@ export function InvoiceBuilder() {
           updateInvoice({
             ...(values as InvoiceFormValues),
             items,
+            conversionDetails,
             template: useInvoiceStore.getState().invoice.template,
           })
         }
@@ -222,7 +243,8 @@ export function InvoiceBuilder() {
   const watchedConversionRate = useWatch({ control, name: 'conversionDetails.conversionRate' })
   const watchedConversionCharges = useWatch({ control, name: 'conversionDetails.charges' })
 
-  // Auto-calculate convertedAmount whenever conversionRate or charges changes
+  // Auto-calculate convertedAmount whenever conversionRate or charges changes.
+  // Users can still override the converted amount manually afterward.
   useEffect(() => {
     const rate = Number(watchedConversionRate) || 0
     if (!rate) return
@@ -484,7 +506,7 @@ export function InvoiceBuilder() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Bank Charges" type="number" step="0.01" placeholder="0" {...register('conversionDetails.charges')} />
-            <Input label="Converted Amount" type="number" step="0.01" placeholder="auto-calculated" helperText="= Total × Rate + Charges" {...register('conversionDetails.convertedAmount')} />
+            <Input label="Converted Amount" type="number" step="0.01" placeholder="Enter manually or auto-calculate" helperText="Auto-filled from total, but you can edit it." {...register('conversionDetails.convertedAmount')} />
           </div>
         </div>
       </CollapsibleSection>
