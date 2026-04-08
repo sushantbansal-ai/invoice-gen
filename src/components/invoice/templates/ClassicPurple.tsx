@@ -51,16 +51,19 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
             </span>
             <span
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
+                display: 'inline-block',
                 backgroundColor: status.bg,
                 color: status.text,
-                padding: '0px 8px 0px 8px',
-                lineHeight: 2,
+                height: '24px',
+                padding: '0 8px',
+                lineHeight: '24px',
                 borderRadius: '12px',
                 fontSize: '12px',
                 fontWeight: '600',
-                textAlign: 'center'
+                textAlign: 'center',
+                verticalAlign: 'middle',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box'
               }}
             >
               {status.label}

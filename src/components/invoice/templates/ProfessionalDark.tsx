@@ -85,16 +85,20 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
               <img src={invoice.logo} alt="Logo" style={{ maxHeight: '70px', maxWidth: '160px', objectFit: 'contain', marginBottom: '10px', display: 'block', marginLeft: 'auto' }} />
             ) : null}
             <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
+              display: 'inline-block',
               border: `2px solid ${status.border}`,
               color: status.color,
-              padding: '0px 8px 0px 8px',
-                lineHeight: 2,
+              height: '24px',
+              padding: '0 8px',
+              lineHeight: '20px',
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: '800',
               letterSpacing: '2px',
+              textAlign: 'center',
+              verticalAlign: 'middle',
+              whiteSpace: 'nowrap',
+              boxSizing: 'border-box',
             }}>
               {status.label}
             </span>

@@ -79,17 +79,21 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
             INVOICE
           </div>
           <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
+            display: 'inline-block',
             backgroundColor: status.bg,
             color: status.text,
-            padding: '0px 8px 0px 8px',
-                lineHeight: 2,
+            height: '24px',
+            padding: '0 8px',
+            lineHeight: '24px',
             borderRadius: '20px',
             fontSize: '11px',
             fontWeight: '700',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            whiteSpace: 'nowrap',
+            boxSizing: 'border-box',
           }}>
             {status.label}
           </span>
