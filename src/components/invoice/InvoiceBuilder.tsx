@@ -157,18 +157,15 @@ export function InvoiceBuilder() {
             ? {
                 toCurrency: values.conversionDetails.toCurrency || '',
                 conversionRate:
-                  values.conversionDetails.conversionRate !== undefined &&
-                  values.conversionDetails.conversionRate !== ''
+                  values.conversionDetails.conversionRate
                     ? Number(values.conversionDetails.conversionRate)
                     : undefined,
                 charges:
-                  values.conversionDetails.charges !== undefined &&
-                  values.conversionDetails.charges !== ''
+                  values.conversionDetails.charges
                     ? Number(values.conversionDetails.charges)
                     : undefined,
                 convertedAmount:
-                  values.conversionDetails.convertedAmount !== undefined &&
-                  values.conversionDetails.convertedAmount !== ''
+                  values.conversionDetails.convertedAmount
                     ? Number(values.conversionDetails.convertedAmount)
                     : undefined,
               }
