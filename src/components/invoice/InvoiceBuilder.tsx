@@ -484,7 +484,7 @@ export function InvoiceBuilder() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Bank Charges" type="number" step="0.01" placeholder="0" {...register('conversionDetails.charges')} />
-            <Input label="Converted Amount" type="number" step="0.01" placeholder="auto-calculated" readOnly helperText="= Total × Rate + Charges" {...register('conversionDetails.convertedAmount')} />
+            <Input label="Converted Amount" type="number" step="0.01" placeholder="auto-calculated" helperText="= Total × Rate + Charges" {...register('conversionDetails.convertedAmount')} />
           </div>
         </div>
       </CollapsibleSection>

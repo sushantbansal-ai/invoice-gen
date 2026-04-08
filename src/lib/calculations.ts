@@ -50,6 +50,7 @@ export function calculateTotals(
   discountRate?: number,
   cgstRate?: number,
   sgstRate?: number,
+  totalAmount?: number,
 ): InvoiceTotals {
   const subtotal = calculateSubtotal(items)
   const taxAmount = Math.round(
@@ -58,6 +59,6 @@ export function calculateTotals(
   const cgstAmount = cgstRate ? calculateTax(subtotal, cgstRate) : 0
   const sgstAmount = sgstRate ? calculateTax(subtotal, sgstRate) : 0
   const discountAmount = discountRate ? calculateDiscount(subtotal, discountRate) : 0
-  const total = calculateTotal(subtotal, taxAmount + cgstAmount + sgstAmount, discountAmount)
+  const total = totalAmount || calculateTotal(subtotal, taxAmount + cgstAmount + sgstAmount, discountAmount)
   return { subtotal, taxAmount, cgstAmount, sgstAmount, discountAmount, total }
 }
