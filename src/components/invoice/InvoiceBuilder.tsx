@@ -148,6 +148,7 @@ export function InvoiceBuilder() {
             id: item?.id || uuidv4(),
             description: item?.description || '',
             hsn: item?.hsn || '',
+            taxRate: item?.taxRate ? Number(item.taxRate) : undefined,
             quantity: Number(item?.quantity) || 0,
             rate: Number(item?.rate) || 0,
             amount: calculateLineItemAmount(Number(item?.quantity) || 0, Number(item?.rate) || 0),
@@ -218,6 +219,23 @@ export function InvoiceBuilder() {
   const currency = useWatch({ control, name: 'currency' })
   const billedByCountry = useWatch({ control, name: 'billedBy.country' })
   const billedToCountry = useWatch({ control, name: 'billedTo.country' })
+  const watchedConversionRate = useWatch({ control, name: 'conversionDetails.conversionRate' })
+  const watchedConversionCharges = useWatch({ control, name: 'conversionDetails.charges' })
+
+  // Auto-calculate convertedAmount whenever conversionRate or charges changes
+  useEffect(() => {
+    const rate = Number(watchedConversionRate) || 0
+    if (!rate) return
+    const charges = Number(watchedConversionCharges) || 0
+    const items = getValues('items')
+    const discountRate = Number(getValues('discountRate')) || 0
+    const cgstRate = Number(getValues('cgstRate')) || 0
+    const sgstRate = Number(getValues('sgstRate')) || 0
+    const { total } = calculateTotals(items, discountRate, cgstRate, sgstRate)
+    const converted = Math.round((total * rate + charges) * 100) / 100
+    setValue('conversionDetails.convertedAmount', converted)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedConversionRate, watchedConversionCharges])
 
   // Memoize state options — getStateOptions iterates all countries on every call
   const billedByStateOptions = useMemo(() => getStateOptions(billedByCountry || ''), [billedByCountry])
@@ -413,24 +431,7 @@ export function InvoiceBuilder() {
             {...register('discountRate')}
           />
         </div>
-        {/* Row 2: Tax Name | Tax Rate */}
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <Input
-            label="Tax Name (optional)"
-            placeholder="e.g. IGST, VAT, HST"
-            {...register('taxName')}
-          />
-          <Input
-            label="Tax Rate (%)"
-            type="number"
-            step="0.01"
-            min="0"
-            max="100"
-            placeholder="0"
-            {...register('taxRate')}
-          />
-        </div>
-        {/* Row 3: CGST | SGST */}
+        {/* Row 2: CGST | SGST */}
         <div className="grid grid-cols-2 gap-3 mt-3">
           <Input
             label="CGST Rate (%)"
@@ -483,7 +484,7 @@ export function InvoiceBuilder() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Bank Charges" type="number" step="0.01" placeholder="0" {...register('conversionDetails.charges')} />
-            <Input label="Converted Amount" type="number" step="0.01" placeholder="0" {...register('conversionDetails.convertedAmount')} />
+            <Input label="Converted Amount" type="number" step="0.01" placeholder="auto-calculated" readOnly helperText="= Total × Rate + Charges" {...register('conversionDetails.convertedAmount')} />
           </div>
         </div>
       </CollapsibleSection>
@@ -538,11 +539,10 @@ export function InvoiceBuilder() {
             onClick={() => {
               const current = form.getValues('payments') || []
               const items = form.getValues('items')
-              const taxRate = Number(form.getValues('taxRate')) || 0
               const discountRate = Number(form.getValues('discountRate')) || 0
               const cgstRate = Number(form.getValues('cgstRate')) || 0
               const sgstRate = Number(form.getValues('sgstRate')) || 0
-              const { total } = calculateTotals(items, taxRate, discountRate, cgstRate, sgstRate)
+              const { total } = calculateTotals(items, discountRate, cgstRate, sgstRate)
               setValue('payments', [
                 ...current,
                 {

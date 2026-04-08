@@ -22,6 +22,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
   const hasHsn = invoice.items.some(item => item.hsn)
+  const hasItemTax = invoice.items.some(item => item.taxRate)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -118,6 +119,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
               <div style={{ color: '#6B7280', fontSize: '11px', marginTop: '4px' }}>GSTIN: {invoice.billedBy.gstin}</div>
             )}
             {invoice.billedBy.email && <div style={{ color: PINK, fontSize: '11px', marginTop: '4px' }}>{invoice.billedBy.email}</div>}
+            {invoice.billedBy.phone && <div style={{ color: '#4B5563', fontSize: '11px' }}>{invoice.billedBy.phone}</div>}
             {invoice.billedBy.attendee && (
               <div style={{ fontSize: '11px', marginTop: '4px' }}>
                 <span style={{ fontWeight: '700', color: '#374151' }}>Attendee: </span>
@@ -146,6 +148,7 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
               <div style={{ color: '#6B7280', fontSize: '11px', marginTop: '4px' }}>GSTIN: {invoice.billedTo.gstin}</div>
             )}
             {invoice.billedTo.email && <div style={{ color: VIOLET, fontSize: '11px', marginTop: '4px' }}>{invoice.billedTo.email}</div>}
+            {invoice.billedTo.phone && <div style={{ color: '#4B5563', fontSize: '11px' }}>{invoice.billedTo.phone}</div>}
           </div>
         </div>
 
@@ -158,30 +161,37 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
               {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>HSN/SAC</th>}
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Qty</th>
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Rate</th>
+              {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Tax %</th>}
+              {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Tax Amt</th>}
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '11px', fontWeight: '700', color: '#FFFFFF' }}>Amount</th>
             </tr>
           </thead>
           <tbody>
-            {invoice.items.map((item, index) => (
-              <tr
-                key={item.id}
-                style={{
-                  backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FDF4FF',
-                  borderBottom: `1px solid ${BORDER_COLOR}30`,
-                }}
-              >
-                <td style={{ padding: '11px 12px', color: '#9CA3AF', fontSize: '12px' }}>{index + 1}.</td>
-                <td style={{ padding: '11px 12px', color: '#111827' }}>{item.description}</td>
-                {hasHsn && <td style={{ padding: '11px 12px', textAlign: 'center', color: '#9CA3AF', fontSize: '12px' }}>{item.hsn || '—'}</td>}
-                <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>{item.quantity}</td>
-                <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>
-                  {currencySymbol}{formatNumber(item.rate)}
-                </td>
-                <td style={{ padding: '11px 12px', textAlign: 'right', fontWeight: '700', color: '#111827' }}>
-                  {currencySymbol}{formatNumber(item.amount)}
-                </td>
-              </tr>
-            ))}
+            {invoice.items.map((item, index) => {
+              const itemTax = item.taxRate ? Math.round(item.amount * (item.taxRate / 100) * 100) / 100 : 0
+              return (
+                <tr
+                  key={item.id}
+                  style={{
+                    backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FDF4FF',
+                    borderBottom: `1px solid ${BORDER_COLOR}30`,
+                  }}
+                >
+                  <td style={{ padding: '11px 12px', color: '#9CA3AF', fontSize: '12px' }}>{index + 1}.</td>
+                  <td style={{ padding: '11px 12px', color: '#111827' }}>{item.description}</td>
+                  {hasHsn && <td style={{ padding: '11px 12px', textAlign: 'center', color: '#9CA3AF', fontSize: '12px' }}>{item.hsn || '—'}</td>}
+                  <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>{item.quantity}</td>
+                  <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>
+                    {currencySymbol}{formatNumber(item.rate)}
+                  </td>
+                  {hasItemTax && <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>{item.taxRate ? `${item.taxRate}%` : '—'}</td>}
+                  {hasItemTax && <td style={{ padding: '11px 12px', textAlign: 'right', color: '#4B5563' }}>{currencySymbol}{formatNumber(itemTax)}</td>}
+                  <td style={{ padding: '11px 12px', textAlign: 'right', fontWeight: '700', color: '#111827' }}>
+                    {currencySymbol}{formatNumber(item.amount)}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
@@ -212,10 +222,28 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
                       <td style={{ paddingBottom: '4px', fontWeight: '600', color: '#111827', fontSize: '12px' }}>{invoice.bankDetails.bank}</td>
                     </tr>
                   )}
+                  {invoice.bankDetails?.branch && (
+                    <tr>
+                      <td style={{ paddingRight: '12px', paddingBottom: '4px', color: '#9CA3AF', fontSize: '11px' }}>Branch</td>
+                      <td style={{ paddingBottom: '4px', fontWeight: '600', color: '#111827', fontSize: '12px' }}>{invoice.bankDetails.branch}</td>
+                    </tr>
+                  )}
+                  {invoice.bankDetails?.ifsc && (
+                    <tr>
+                      <td style={{ paddingRight: '12px', paddingBottom: '4px', color: '#9CA3AF', fontSize: '11px' }}>IFSC</td>
+                      <td style={{ paddingBottom: '4px', fontWeight: '600', color: '#111827', fontSize: '12px' }}>{invoice.bankDetails.ifsc}</td>
+                    </tr>
+                  )}
                   {invoice.bankDetails?.swift && (
                     <tr>
-                      <td style={{ paddingRight: '12px', color: '#9CA3AF', fontSize: '11px' }}>SWIFT</td>
-                      <td style={{ fontWeight: '600', color: '#111827', fontSize: '12px' }}>{invoice.bankDetails.swift}</td>
+                      <td style={{ paddingRight: '12px', paddingBottom: invoice.bankDetails?.routingNumber ? '4px' : undefined, color: '#9CA3AF', fontSize: '11px' }}>SWIFT</td>
+                      <td style={{ paddingBottom: invoice.bankDetails?.routingNumber ? '4px' : undefined, fontWeight: '600', color: '#111827', fontSize: '12px' }}>{invoice.bankDetails.swift}</td>
+                    </tr>
+                  )}
+                  {invoice.bankDetails?.routingNumber && (
+                    <tr>
+                      <td style={{ paddingRight: '12px', color: '#9CA3AF', fontSize: '11px' }}>Routing No.</td>
+                      <td style={{ fontWeight: '600', color: '#111827', fontSize: '12px' }}>{invoice.bankDetails.routingNumber}</td>
                     </tr>
                   )}
                 </tbody>
@@ -227,12 +255,12 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
             {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: '#9CA3AF', fontSize: '12px' }}>Subtotal</span>
+                  <span style={{ color: '#9CA3AF', fontSize: '12px' }}>Taxable Value</span>
                   <span style={{ color: '#374151', fontSize: '12px' }}>{formatCurrency(totals.subtotal, invoice.currency)}</span>
                 </div>
                 {totals.taxAmount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ color: '#9CA3AF', fontSize: '12px' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
+                    <span style={{ color: '#9CA3AF', fontSize: '12px' }}>Tax</span>
                     <span style={{ color: '#374151', fontSize: '12px' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
                   </div>
                 )}
@@ -270,6 +298,12 @@ export function CreativeBold({ invoice, totals }: TemplateProps) {
                   <span style={{ color: '#9CA3AF', fontSize: '11px' }}>Conversion Rate</span>
                   <span style={{ color: '#4B5563', fontSize: '11px' }}>{invoice.conversionDetails?.conversionRate}</span>
                 </div>
+                {invoice.conversionDetails?.charges !== undefined && invoice.conversionDetails.charges > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ color: '#9CA3AF', fontSize: '11px' }}>Bank Charges</span>
+                    <span style={{ color: '#4B5563', fontSize: '11px' }}>{formatNumber(invoice.conversionDetails.charges)}</span>
+                  </div>
+                )}
                 {invoice.conversionDetails?.convertedAmount && (
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#9CA3AF', fontSize: '11px' }}>In {invoice.conversionDetails.toCurrency}</span>

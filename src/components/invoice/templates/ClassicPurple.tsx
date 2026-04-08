@@ -22,6 +22,7 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
   const hasHsn = invoice.items.some(item => item.hsn)
+  const hasItemTax = invoice.items.some(item => item.taxRate)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -177,27 +178,34 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
             {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', fontSize: '12px' }}>HSN/SAC</th>}
             <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Quantity</th>
             <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Rate</th>
+            {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Tax %</th>}
+            {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Tax Amt</th>}
             <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Amount</th>
           </tr>
         </thead>
         <tbody>
-          {invoice.items.map((item, index) => (
-            <tr
-              key={item.id}
-              style={{ backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFAFA', borderBottom: '1px solid #E5E7EB' }}
-            >
-              <td style={{ padding: '10px 12px', color: '#6B7280' }}>{index + 1}.</td>
-              <td style={{ padding: '10px 12px', color: '#111827' }}>{item.description}</td>
-              {hasHsn && <td style={{ padding: '10px 12px', textAlign: 'center', color: '#6B7280', fontSize: '12px' }}>{item.hsn || '—'}</td>}
-              <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{item.quantity}</td>
-              <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>
-                {currencySymbol}{formatNumber(item.rate)}
-              </td>
-              <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', color: '#111827' }}>
-                {currencySymbol}{formatNumber(item.amount)}
-              </td>
-            </tr>
-          ))}
+          {invoice.items.map((item, index) => {
+            const itemTax = item.taxRate ? Math.round(item.amount * (item.taxRate / 100) * 100) / 100 : 0
+            return (
+              <tr
+                key={item.id}
+                style={{ backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFAFA', borderBottom: '1px solid #E5E7EB' }}
+              >
+                <td style={{ padding: '10px 12px', color: '#6B7280' }}>{index + 1}.</td>
+                <td style={{ padding: '10px 12px', color: '#111827' }}>{item.description}</td>
+                {hasHsn && <td style={{ padding: '10px 12px', textAlign: 'center', color: '#6B7280', fontSize: '12px' }}>{item.hsn || '—'}</td>}
+                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{item.quantity}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>
+                  {currencySymbol}{formatNumber(item.rate)}
+                </td>
+                {hasItemTax && <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{item.taxRate ? `${item.taxRate}%` : '—'}</td>}
+                {hasItemTax && <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{currencySymbol}{formatNumber(itemTax)}</td>}
+                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '600', color: '#111827' }}>
+                  {currencySymbol}{formatNumber(item.amount)}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
 
@@ -234,8 +242,14 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
                 )}
                 {invoice.bankDetails?.bank && (
                   <tr>
-                    <td style={{ paddingRight: '12px', color: '#6B7280', fontSize: '12px' }}>Bank</td>
-                    <td style={{ fontWeight: '600', color: '#111827' }}>{invoice.bankDetails.bank}</td>
+                    <td style={{ paddingBottom: invoice.bankDetails?.branch || invoice.bankDetails?.routingNumber ? '4px' : undefined, paddingRight: '12px', color: '#6B7280', fontSize: '12px' }}>Bank</td>
+                    <td style={{ paddingBottom: invoice.bankDetails?.branch || invoice.bankDetails?.routingNumber ? '4px' : undefined, fontWeight: '600', color: '#111827' }}>{invoice.bankDetails.bank}</td>
+                  </tr>
+                )}
+                {invoice.bankDetails?.branch && (
+                  <tr>
+                    <td style={{ paddingBottom: invoice.bankDetails?.routingNumber ? '4px' : undefined, paddingRight: '12px', color: '#6B7280', fontSize: '12px' }}>Branch</td>
+                    <td style={{ paddingBottom: invoice.bankDetails?.routingNumber ? '4px' : undefined, fontWeight: '600', color: '#111827' }}>{invoice.bankDetails.branch}</td>
                   </tr>
                 )}
                 {invoice.bankDetails?.routingNumber && (
@@ -255,12 +269,12 @@ export function ClassicPurple({ invoice, totals, isPdfExport = false }: Template
           {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
             <div style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#6B7280' }}>Subtotal</span>
+                <span style={{ color: '#6B7280' }}>Taxable Value</span>
                 <span style={{ color: '#374151' }}>{formatCurrency(totals.subtotal, invoice.currency)}</span>
               </div>
               {totals.taxAmount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: '#6B7280' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
+                  <span style={{ color: '#6B7280' }}>Tax</span>
                   <span style={{ color: '#374151' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
                 </div>
               )}

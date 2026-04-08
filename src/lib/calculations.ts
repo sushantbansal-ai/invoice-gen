@@ -47,13 +47,14 @@ export interface InvoiceTotals {
 
 export function calculateTotals(
   items: LineItem[],
-  taxRate?: number,
   discountRate?: number,
   cgstRate?: number,
   sgstRate?: number,
 ): InvoiceTotals {
   const subtotal = calculateSubtotal(items)
-  const taxAmount = taxRate ? calculateTax(subtotal, taxRate) : 0
+  const taxAmount = Math.round(
+    items.reduce((sum, item) => sum + item.amount * ((item.taxRate || 0) / 100), 0) * 100
+  ) / 100
   const cgstAmount = cgstRate ? calculateTax(subtotal, cgstRate) : 0
   const sgstAmount = sgstRate ? calculateTax(subtotal, sgstRate) : 0
   const discountAmount = discountRate ? calculateDiscount(subtotal, discountRate) : 0

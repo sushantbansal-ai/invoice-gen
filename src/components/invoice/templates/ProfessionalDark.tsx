@@ -29,6 +29,7 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
   const status = STATUS_DARK[invoice.status] || STATUS_DARK.unpaid
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
   const hasHsn = invoice.items.some(item => item.hsn)
+  const hasItemTax = invoice.items.some(item => item.taxRate)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -126,6 +127,8 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
               </div>
             )}
             {invoice.billedBy.email && <div style={{ color: GOLD, fontSize: '11px', marginTop: '4px' }}>{invoice.billedBy.email}</div>}
+            {invoice.billedBy.phone && <div style={{ color: TEXT_SECONDARY, fontSize: '11px' }}>{invoice.billedBy.phone}</div>}
+            {invoice.billedBy.attendee && <div style={{ color: TEXT_SECONDARY, fontSize: '11px', marginTop: '4px' }}>Attendee: {invoice.billedBy.attendee}</div>}
           </div>
           <div style={{ backgroundColor: SURFACE, borderRadius: '6px', padding: '18px', borderLeft: `3px solid ${BORDER}` }}>
             <div style={{ fontSize: '10px', fontWeight: '700', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '10px' }}>
@@ -147,6 +150,7 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
               <div style={{ color: TEXT_SECONDARY, fontSize: '11px', marginTop: '4px' }}>GSTIN: {invoice.billedTo.gstin}</div>
             )}
             {invoice.billedTo.email && <div style={{ color: TEXT_SECONDARY, fontSize: '11px', marginTop: '4px' }}>{invoice.billedTo.email}</div>}
+            {invoice.billedTo.phone && <div style={{ color: TEXT_SECONDARY, fontSize: '11px' }}>{invoice.billedTo.phone}</div>}
           </div>
         </div>
 
@@ -159,30 +163,37 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
               {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>HSN/SAC</th>}
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Qty</th>
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Rate</th>
+              {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Tax %</th>}
+              {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Tax Amt</th>}
               <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: GOLD, textTransform: 'uppercase', letterSpacing: '1px' }}>Amount</th>
             </tr>
           </thead>
           <tbody>
-            {invoice.items.map((item, index) => (
-              <tr
-                key={item.id}
-                style={{
-                  backgroundColor: index % 2 === 0 ? SURFACE : '#162032',
-                  borderBottom: `1px solid ${BORDER}`,
-                }}
-              >
-                <td style={{ padding: '11px 12px', color: TEXT_MUTED, fontSize: '12px' }}>{index + 1}</td>
-                <td style={{ padding: '11px 12px', color: TEXT_PRIMARY }}>{item.description}</td>
-                {hasHsn && <td style={{ padding: '11px 12px', textAlign: 'center', color: TEXT_MUTED, fontSize: '12px' }}>{item.hsn || '—'}</td>}
-                <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>{item.quantity}</td>
-                <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>
-                  {currencySymbol}{formatNumber(item.rate)}
-                </td>
-                <td style={{ padding: '11px 12px', textAlign: 'right', fontWeight: '700', color: TEXT_PRIMARY }}>
-                  {currencySymbol}{formatNumber(item.amount)}
-                </td>
-              </tr>
-            ))}
+            {invoice.items.map((item, index) => {
+              const itemTax = item.taxRate ? Math.round(item.amount * (item.taxRate / 100) * 100) / 100 : 0
+              return (
+                <tr
+                  key={item.id}
+                  style={{
+                    backgroundColor: index % 2 === 0 ? SURFACE : '#162032',
+                    borderBottom: `1px solid ${BORDER}`,
+                  }}
+                >
+                  <td style={{ padding: '11px 12px', color: TEXT_MUTED, fontSize: '12px' }}>{index + 1}</td>
+                  <td style={{ padding: '11px 12px', color: TEXT_PRIMARY }}>{item.description}</td>
+                  {hasHsn && <td style={{ padding: '11px 12px', textAlign: 'center', color: TEXT_MUTED, fontSize: '12px' }}>{item.hsn || '—'}</td>}
+                  <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>{item.quantity}</td>
+                  <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>
+                    {currencySymbol}{formatNumber(item.rate)}
+                  </td>
+                  {hasItemTax && <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>{item.taxRate ? `${item.taxRate}%` : '—'}</td>}
+                  {hasItemTax && <td style={{ padding: '11px 12px', textAlign: 'right', color: TEXT_SECONDARY }}>{currencySymbol}{formatNumber(itemTax)}</td>}
+                  <td style={{ padding: '11px 12px', textAlign: 'right', fontWeight: '700', color: TEXT_PRIMARY }}>
+                    {currencySymbol}{formatNumber(item.amount)}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
@@ -211,10 +222,28 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
                       <td style={{ paddingBottom: '5px', color: TEXT_PRIMARY, fontSize: '12px', fontWeight: '600' }}>{invoice.bankDetails.bank}</td>
                     </tr>
                   )}
+                  {invoice.bankDetails?.branch && (
+                    <tr>
+                      <td style={{ paddingRight: '12px', paddingBottom: '5px', color: TEXT_MUTED, fontSize: '11px' }}>Branch</td>
+                      <td style={{ paddingBottom: '5px', color: TEXT_PRIMARY, fontSize: '12px', fontWeight: '600' }}>{invoice.bankDetails.branch}</td>
+                    </tr>
+                  )}
+                  {invoice.bankDetails?.ifsc && (
+                    <tr>
+                      <td style={{ paddingRight: '12px', paddingBottom: '5px', color: TEXT_MUTED, fontSize: '11px' }}>IFSC</td>
+                      <td style={{ paddingBottom: '5px', color: TEXT_PRIMARY, fontSize: '12px', fontWeight: '600' }}>{invoice.bankDetails.ifsc}</td>
+                    </tr>
+                  )}
                   {invoice.bankDetails?.swift && (
                     <tr>
-                      <td style={{ paddingRight: '12px', color: TEXT_MUTED, fontSize: '11px' }}>SWIFT</td>
-                      <td style={{ color: TEXT_PRIMARY, fontSize: '12px', fontWeight: '600' }}>{invoice.bankDetails.swift}</td>
+                      <td style={{ paddingRight: '12px', paddingBottom: invoice.bankDetails?.routingNumber ? '5px' : undefined, color: TEXT_MUTED, fontSize: '11px' }}>SWIFT</td>
+                      <td style={{ paddingBottom: invoice.bankDetails?.routingNumber ? '5px' : undefined, color: TEXT_PRIMARY, fontSize: '12px', fontWeight: '600' }}>{invoice.bankDetails.swift}</td>
+                    </tr>
+                  )}
+                  {invoice.bankDetails?.routingNumber && (
+                    <tr>
+                      <td style={{ paddingRight: '12px', color: TEXT_MUTED, fontSize: '11px' }}>Routing No.</td>
+                      <td style={{ color: TEXT_PRIMARY, fontSize: '12px', fontWeight: '600' }}>{invoice.bankDetails.routingNumber}</td>
                     </tr>
                   )}
                 </tbody>
@@ -226,12 +255,12 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
             {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>Subtotal</span>
+                  <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>Taxable Value</span>
                   <span style={{ color: TEXT_SECONDARY, fontSize: '12px' }}>{formatCurrency(totals.subtotal, invoice.currency)}</span>
                 </div>
                 {totals.taxAmount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
+                    <span style={{ color: TEXT_MUTED, fontSize: '12px' }}>Tax</span>
                     <span style={{ color: TEXT_SECONDARY, fontSize: '12px' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
                   </div>
                 )}
@@ -269,6 +298,12 @@ export function ProfessionalDark({ invoice, totals }: TemplateProps) {
                   <span style={{ color: TEXT_MUTED, fontSize: '11px' }}>Conversion Rate</span>
                   <span style={{ color: TEXT_SECONDARY, fontSize: '11px' }}>{invoice.conversionDetails?.conversionRate}</span>
                 </div>
+                {invoice.conversionDetails?.charges !== undefined && invoice.conversionDetails.charges > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ color: TEXT_MUTED, fontSize: '11px' }}>Bank Charges</span>
+                    <span style={{ color: TEXT_SECONDARY, fontSize: '11px' }}>{formatNumber(invoice.conversionDetails.charges)}</span>
+                  </div>
+                )}
                 {invoice.conversionDetails?.convertedAmount && (
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: TEXT_MUTED, fontSize: '11px' }}>In {invoice.conversionDetails.toCurrency}</span>

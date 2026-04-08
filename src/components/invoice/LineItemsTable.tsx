@@ -40,6 +40,11 @@ function LineItemRow({ control, register, errors, setValue, getValues, index, fi
     setValue(`items.${index}.amount`, calculateLineItemAmount(qty, rate))
   }
 
+  function handleTaxRateChange(value: string) {
+    const num = parseFloat(value)
+    setValue(`items.${index}.taxRate`, isNaN(num) ? undefined : num)
+  }
+
   return (
     <tr key={fieldId} className="border-b border-gray-100 hover:bg-gray-50 group">
       <td className="py-2 px-2 text-gray-400 text-xs">{index + 1}</td>
@@ -88,6 +93,19 @@ function LineItemRow({ control, register, errors, setValue, getValues, index, fi
             className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] rounded pl-4 pr-1 py-0.5 outline-none text-right focus:ring-1 focus:ring-[#7C3AED]"
           />
         </div>
+      </td>
+      <td className="py-2 px-2">
+        <input
+          {...register(`items.${index}.taxRate`, {
+            onChange: (e) => handleTaxRateChange(e.target.value),
+          })}
+          type="number"
+          step="0.01"
+          min="0"
+          max="100"
+          placeholder="0"
+          className="w-full text-sm border-0 bg-transparent focus:bg-white focus:border focus:border-[#7C3AED] rounded px-1 py-0.5 outline-none text-right focus:ring-1 focus:ring-[#7C3AED]"
+        />
       </td>
       <td className="py-2 px-2 text-right text-sm font-semibold text-gray-700">
         <input {...register(`items.${index}.amount`)} type="hidden" />
@@ -178,6 +196,23 @@ function LineItemCard({ control, register, errors, setValue, getValues, index, f
           </div>
         </div>
       </div>
+      <div>
+        <label className="text-xs text-gray-500 block mb-1">Tax %</label>
+        <input
+          {...register(`items.${index}.taxRate`, {
+            onChange: (e) => {
+              const num = parseFloat(e.target.value)
+              setValue(`items.${index}.taxRate`, isNaN(num) ? undefined : num)
+            },
+          })}
+          type="number"
+          step="0.01"
+          min="0"
+          max="100"
+          placeholder="0"
+          className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] outline-none"
+        />
+      </div>
     </div>
   )
 }
@@ -208,6 +243,7 @@ export function LineItemsTable({
               <th className="text-left py-2 px-2">Description / HSN/SAC</th>
               <th className="text-right py-2 px-2 w-20">Qty</th>
               <th className="text-right py-2 px-2 w-28">Rate</th>
+              <th className="text-right py-2 px-2 w-20">Tax %</th>
               <th className="text-right py-2 px-2 w-28">Amount</th>
               <th className="py-2 px-2 w-8 rounded-r-lg"></th>
             </tr>
@@ -255,7 +291,7 @@ export function LineItemsTable({
       <button
         type="button"
         onClick={() =>
-          append({ id: crypto.randomUUID(), description: '', hsn: '', quantity: 1, rate: 0, amount: 0 })
+          append({ id: crypto.randomUUID(), description: '', hsn: '', taxRate: undefined, quantity: 1, rate: 0, amount: 0 })
         }
         className="mt-3 flex items-center gap-1.5 text-sm text-[#7C3AED] hover:text-[#5b21b6] font-medium transition-colors"
       >

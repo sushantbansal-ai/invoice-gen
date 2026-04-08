@@ -62,7 +62,7 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
     invoice.bankDetails?.bank || invoice.bankDetails?.routingNumber || invoice.bankDetails?.branch
   const hasConversion = invoice.conversionDetails?.conversionRate
   const hasPayments = invoice.payments && invoice.payments.length > 0
-  const taxRate = invoice.taxRate || 0
+  const hasItemTax = invoice.items.some(item => item.taxRate)
   const cgstRate = invoice.cgstRate || 0
   const sgstRate = invoice.sgstRate || 0
   const hasGstBreakdown = cgstRate > 0 || sgstRate > 0
@@ -230,9 +230,9 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
               <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '700', color: BLUE }}>#</th>
               <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '700', color: BLUE }}>Item</th>
               <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: BLUE }}>HSN/SAC</th>
-              {taxRate > 0 && (
+              {hasItemTax && (
                 <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: BLUE, whiteSpace: 'nowrap' as const }}>
-                  {invoice.taxName || 'Tax'} Rate
+                  Tax Rate
                 </th>
               )}
               {hasGstBreakdown && (
@@ -244,9 +244,9 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
               <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>Qty</th>
               <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>Rate</th>
               <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>Amount</th>
-              {taxRate > 0 && (
+              {hasItemTax && (
                 <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>
-                  {invoice.taxName || 'Tax'}
+                  Tax
                 </th>
               )}
               <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: '12px', fontWeight: '700', color: BLUE }}>Total</th>
@@ -254,7 +254,7 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
           </thead>
           <tbody>
             {invoice.items.map((item, index) => {
-              const itemTax = taxRate > 0 ? Math.round(item.amount * (taxRate / 100) * 100) / 100 : 0
+              const itemTax = item.taxRate ? Math.round(item.amount * (item.taxRate / 100) * 100) / 100 : 0
               const itemCgst = cgstRate > 0 ? Math.round(item.amount * (cgstRate / 100) * 100) / 100 : 0
               const itemSgst = sgstRate > 0 ? Math.round(item.amount * (sgstRate / 100) * 100) / 100 : 0
               const itemTotal = item.amount + itemTax + itemCgst + itemSgst
@@ -269,8 +269,8 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
                   <td style={{ padding: '10px 8px', color: TEXT_GRAY, fontSize: '12px' }}>{index + 1}.</td>
                   <td style={{ padding: '10px 8px', color: TEXT_DARK }}>{item.description}</td>
                   <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY, fontSize: '12px' }}>{item.hsn || '—'}</td>
-                  {taxRate > 0 && (
-                    <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY }}>{taxRate}%</td>
+                  {hasItemTax && (
+                    <td style={{ padding: '10px 8px', textAlign: 'center', color: TEXT_GRAY }}>{item.taxRate ? `${item.taxRate}%` : '—'}</td>
                   )}
                   {hasGstBreakdown && (
                     <>
@@ -285,7 +285,7 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
                   <td style={{ padding: '10px 8px', textAlign: 'right', color: TEXT_DARK }}>
                     {currencySymbol}{formatNumber(item.amount)}
                   </td>
-                  {taxRate > 0 && (
+                  {hasItemTax && (
                     <td style={{ padding: '10px 8px', textAlign: 'right', color: TEXT_GRAY }}>
                       {currencySymbol}{formatNumber(itemTax)}
                     </td>
@@ -387,7 +387,7 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
             {/* Tax / IGST row */}
             {totals.taxAmount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #DBEAFE' }}>
-                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>{invoice.taxName || 'Tax'} ({taxRate}%)</span>
+                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>Tax</span>
                 <span style={{ fontWeight: '700', color: TEXT_DARK, fontSize: '13px' }}>
                   {currencySymbol}{formatNumber(totals.taxAmount)}
                 </span>
@@ -396,7 +396,7 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
             {/* CGST row */}
             {totals.cgstAmount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #DBEAFE' }}>
-                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>CGST ({cgstRate}%)</span>
+                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>CGST ({invoice.cgstRate}%)</span>
                 <span style={{ fontWeight: '700', color: TEXT_DARK, fontSize: '13px' }}>
                   {currencySymbol}{formatNumber(totals.cgstAmount)}
                 </span>
@@ -405,7 +405,7 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
             {/* SGST row */}
             {totals.sgstAmount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #DBEAFE' }}>
-                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>SGST ({sgstRate}%)</span>
+                <span style={{ color: TEXT_GRAY, fontSize: '13px' }}>SGST ({invoice.sgstRate}%)</span>
                 <span style={{ fontWeight: '700', color: TEXT_DARK, fontSize: '13px' }}>
                   {currencySymbol}{formatNumber(totals.sgstAmount)}
                 </span>
@@ -449,6 +449,12 @@ export function CorporateBlue({ invoice, totals }: TemplateProps) {
                   <span style={{ color: TEXT_GRAY, fontSize: '12px' }}>Conversion Rate</span>
                   <span style={{ color: TEXT_DARK, fontSize: '12px' }}>{invoice.conversionDetails?.conversionRate}</span>
                 </div>
+                {invoice.conversionDetails?.charges !== undefined && invoice.conversionDetails.charges > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                    <span style={{ color: TEXT_GRAY, fontSize: '12px' }}>Bank Charges</span>
+                    <span style={{ color: TEXT_DARK, fontSize: '12px' }}>{formatNumber(invoice.conversionDetails.charges)}</span>
+                  </div>
+                )}
                 {invoice.conversionDetails?.convertedAmount && (
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: TEXT_GRAY, fontSize: '12px' }}>In {invoice.conversionDetails.toCurrency}</span>

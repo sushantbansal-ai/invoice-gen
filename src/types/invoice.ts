@@ -22,6 +22,7 @@ export interface LineItem {
   id: string
   description: string
   hsn?: string
+  taxRate?: number
   quantity: number
   rate: number
   amount: number
@@ -65,8 +66,6 @@ export interface Invoice {
 
   items: LineItem[]
   currency: CurrencyCode
-  taxName?: string
-  taxRate?: number
   cgstRate?: number
   sgstRate?: number
   discountRate?: number
@@ -103,6 +102,7 @@ export const lineItemSchema = z.object({
   id: z.string(),
   description: z.string().min(1, 'Description is required'),
   hsn: z.string().optional(),
+  taxRate: z.coerce.number().min(0).max(100).optional(),
   quantity: z.coerce.number().min(0.01, 'Quantity must be > 0'),
   rate: z.coerce.number().min(0, 'Rate must be >= 0'),
   amount: z.coerce.number(),
@@ -144,8 +144,6 @@ export const invoiceSchema = z.object({
   billedTo: billedPartySchema,
   items: z.array(lineItemSchema).min(1, 'At least one item is required'),
   currency: z.enum(['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY', 'SGD', 'AED', 'CHF']),
-  taxName: z.string().optional(),
-  taxRate: z.coerce.number().min(0).max(100).optional(),
   cgstRate: z.coerce.number().min(0).max(100).optional(),
   sgstRate: z.coerce.number().min(0).max(100).optional(),
   discountRate: z.coerce.number().min(0).max(100).optional(),

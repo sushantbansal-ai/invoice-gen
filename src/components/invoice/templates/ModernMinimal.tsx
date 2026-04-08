@@ -22,6 +22,7 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
   const status = STATUS_CONFIG[invoice.status]
   const currencySymbol = CURRENCY_SYMBOLS[invoice.currency]
   const hasHsn = invoice.items.some(item => item.hsn)
+  const hasItemTax = invoice.items.some(item => item.taxRate)
   const hasBankDetails =
     invoice.bankDetails?.accountName || invoice.bankDetails?.accountNumber ||
     invoice.bankDetails?.ifsc || invoice.bankDetails?.swift ||
@@ -123,6 +124,11 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
           )}
           {invoice.billedBy.email && <div style={{ color: '#2563EB', marginTop: '4px', fontSize: '12px' }}>{invoice.billedBy.email}</div>}
           {invoice.billedBy.phone && <div style={{ color: '#475569', fontSize: '12px' }}>{invoice.billedBy.phone}</div>}
+          {invoice.billedBy.attendee && (
+            <div style={{ color: '#475569', fontSize: '12px', marginTop: '4px' }}>
+              Attendee: {invoice.billedBy.attendee}
+            </div>
+          )}
         </div>
         <div>
           <div style={{ fontSize: '10px', fontWeight: '700', color: '#2563EB', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '10px' }}>
@@ -157,24 +163,31 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
             {hasHsn && <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>HSN/SAC</th>}
             <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Qty</th>
             <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Rate</th>
+            {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Tax %</th>}
+            {hasItemTax && <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Tax Amt</th>}
             <th style={{ padding: '10px 12px', textAlign: 'right', fontSize: '10px', fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Amount</th>
           </tr>
         </thead>
         <tbody>
-          {invoice.items.map((item, index) => (
-            <tr key={item.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <td style={{ padding: '12px', color: '#94A3B8', fontSize: '12px' }}>{index + 1}</td>
-              <td style={{ padding: '12px', color: '#0F172A' }}>{item.description}</td>
-              {hasHsn && <td style={{ padding: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>{item.hsn || '—'}</td>}
-              <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>{item.quantity}</td>
-              <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>
-                {currencySymbol}{formatNumber(item.rate)}
-              </td>
-              <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#0F172A' }}>
-                {currencySymbol}{formatNumber(item.amount)}
-              </td>
-            </tr>
-          ))}
+          {invoice.items.map((item, index) => {
+            const itemTax = item.taxRate ? Math.round(item.amount * (item.taxRate / 100) * 100) / 100 : 0
+            return (
+              <tr key={item.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <td style={{ padding: '12px', color: '#94A3B8', fontSize: '12px' }}>{index + 1}</td>
+                <td style={{ padding: '12px', color: '#0F172A' }}>{item.description}</td>
+                {hasHsn && <td style={{ padding: '12px', textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>{item.hsn || '—'}</td>}
+                <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>{item.quantity}</td>
+                <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>
+                  {currencySymbol}{formatNumber(item.rate)}
+                </td>
+                {hasItemTax && <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>{item.taxRate ? `${item.taxRate}%` : '—'}</td>}
+                {hasItemTax && <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>{currencySymbol}{formatNumber(itemTax)}</td>}
+                <td style={{ padding: '12px', textAlign: 'right', fontWeight: '700', color: '#0F172A' }}>
+                  {currencySymbol}{formatNumber(item.amount)}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
 
@@ -205,10 +218,28 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
                     <td style={{ paddingBottom: '4px', fontWeight: '600', color: '#0F172A', fontSize: '12px' }}>{invoice.bankDetails.bank}</td>
                   </tr>
                 )}
+                {invoice.bankDetails?.branch && (
+                  <tr>
+                    <td style={{ paddingRight: '12px', paddingBottom: '4px', color: '#64748B', fontSize: '11px' }}>Branch</td>
+                    <td style={{ paddingBottom: '4px', fontWeight: '600', color: '#0F172A', fontSize: '12px' }}>{invoice.bankDetails.branch}</td>
+                  </tr>
+                )}
+                {invoice.bankDetails?.ifsc && (
+                  <tr>
+                    <td style={{ paddingRight: '12px', paddingBottom: '4px', color: '#64748B', fontSize: '11px' }}>IFSC</td>
+                    <td style={{ paddingBottom: '4px', fontWeight: '600', color: '#0F172A', fontSize: '12px' }}>{invoice.bankDetails.ifsc}</td>
+                  </tr>
+                )}
                 {invoice.bankDetails?.swift && (
                   <tr>
-                    <td style={{ paddingRight: '12px', color: '#64748B', fontSize: '11px' }}>SWIFT</td>
-                    <td style={{ fontWeight: '600', color: '#0F172A', fontSize: '12px' }}>{invoice.bankDetails.swift}</td>
+                    <td style={{ paddingRight: '12px', paddingBottom: invoice.bankDetails?.routingNumber ? '4px' : undefined, color: '#64748B', fontSize: '11px' }}>SWIFT</td>
+                    <td style={{ paddingBottom: invoice.bankDetails?.routingNumber ? '4px' : undefined, fontWeight: '600', color: '#0F172A', fontSize: '12px' }}>{invoice.bankDetails.swift}</td>
+                  </tr>
+                )}
+                {invoice.bankDetails?.routingNumber && (
+                  <tr>
+                    <td style={{ paddingRight: '12px', color: '#64748B', fontSize: '11px' }}>Routing No.</td>
+                    <td style={{ fontWeight: '600', color: '#0F172A', fontSize: '12px' }}>{invoice.bankDetails.routingNumber}</td>
                   </tr>
                 )}
               </tbody>
@@ -220,12 +251,12 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
           {(totals.taxAmount > 0 || totals.cgstAmount > 0 || totals.sgstAmount > 0 || totals.discountAmount > 0) && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#64748B', fontSize: '12px' }}>Subtotal</span>
+                <span style={{ color: '#64748B', fontSize: '12px' }}>Taxable Value</span>
                 <span style={{ color: '#334155', fontSize: '12px' }}>{formatCurrency(totals.subtotal, invoice.currency)}</span>
               </div>
               {totals.taxAmount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: '#64748B', fontSize: '12px' }}>{invoice.taxName || 'Tax'} ({invoice.taxRate}%)</span>
+                  <span style={{ color: '#64748B', fontSize: '12px' }}>Tax</span>
                   <span style={{ color: '#334155', fontSize: '12px' }}>+{formatCurrency(totals.taxAmount, invoice.currency)}</span>
                 </div>
               )}
@@ -262,6 +293,12 @@ export function ModernMinimal({ invoice, totals }: TemplateProps) {
                 <span style={{ color: '#94A3B8', fontSize: '11px' }}>Conversion Rate</span>
                 <span style={{ color: '#475569', fontSize: '11px' }}>{invoice.conversionDetails?.conversionRate}</span>
               </div>
+              {invoice.conversionDetails?.charges !== undefined && invoice.conversionDetails.charges > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ color: '#94A3B8', fontSize: '11px' }}>Bank Charges</span>
+                  <span style={{ color: '#475569', fontSize: '11px' }}>{formatNumber(invoice.conversionDetails.charges)}</span>
+                </div>
+              )}
               {invoice.conversionDetails?.convertedAmount && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94A3B8', fontSize: '11px' }}>In {invoice.conversionDetails.toCurrency}</span>
